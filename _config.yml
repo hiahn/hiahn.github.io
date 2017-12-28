@@ -9,7 +9,7 @@ relative_permalinks: false
 title:               hyungil ahn 
 #tagline:             'foo's website
 description:         Foo's blog...
-url: https://hyungilahn.github.io
+url: https://hiahn.github.io
 baseurl: ""
 urlimg: https://dyndna.github.io/lanyon-plus/images/
 markdown: kramdown
