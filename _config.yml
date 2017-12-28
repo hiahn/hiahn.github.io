@@ -9,8 +9,8 @@ relative_permalinks: false
 title:               hyungilahn 
 #tagline:             'foo's website
 description:         Foo's blog...
-url: https://dyndna.github.io/lanyon-plus
-baseurl: "/lanyon-plus"
+url: https://hyungilahn.github.io/
+baseurl: ""
 urlimg: https://dyndna.github.io/lanyon-plus/images/
 markdown: kramdown
 paginate: 5
