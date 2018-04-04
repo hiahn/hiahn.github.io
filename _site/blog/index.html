@@ -195,27 +195,242 @@ Search box will show up here if Google Custom Search key is set in <code>_config
   <div class="post">
     <h1 class="post-title">
       <a href="http://localhost:4000/blog/2018/01/01/deep-prob-modeling/">
-        Introducing PPL
+        Bayesian regression with a known function form
       </a>
     </h1>
 
   <span class="post-date indexpg" itemprop="datePublished" content="2018-01-01"><i class="fa fa-calendar" title="Date published"> 01 Jan 2018</i> </span>
 
- Let <script type="math/tex">Y_1,\ldots,Y_N</script> be <script type="math/tex">(d+1)</script>-dimensional observations (collecting the <script type="math/tex">X_n\in\mathbb{R}^d</script> covariate within each <script type="math/tex">Y_n\in\mathbb{R}</script> response for shorthand) generated from some model with unknown parameters <script type="math/tex">\theta\in\Theta</script>.
+ <em>Deep probabilistic programming</em> is a method of performing “Bayesian” probabilistic modeling on deep learning frameworks. It empowers us to make composite and deep network models represent probabilistic uncertainty in predictions.
 
-<strong>Goal</strong>: Find the “true” parameters <script type="math/tex">\theta^*\in\Theta</script>.
+Deep probabilistic programming may be characterized by doing Bayesian inference using differentiable programming. Thus, deep probabilistic programming may be called “Bayesian differentiable programming”.
+
+<h5 id="why-deep-and-differentiable-programming">Why Deep and Differentiable Programming?</h5>
+
+Deep learning frameworks (e.g., PyTorch, TensorFlow, MxNet) allow us to define a target model in a <em>deep</em> and composite network structure assembling the building blocks of component models (= parametric linear or non-linear functions) that run in data-dependent, procedural and conditional manner. Also, they provide a tool to estimate the model parameters in terms of <em>differentiable</em> optimization like stochastic gradient decent (SGD) and back-propagation algorithms.
+
+Since Bayesian modeling is based on a probabilistic model of the generative process relating the observed data with the uncertain latent variables (= generating parameters), it is very desirable to have the representational power of a deep and composite network model to sufficiently describe the potentially complex generative processes with multiple input variables. In addition, the exact computation of the posterior distribution of latent variables based on the prior and the observed data is most likely to be intractable. Thus, this requires approximate Bayesian inference techniques, such as variational inferences (VIs). Thankfully, VIs transform the approximate posterior inference problems into the optimization problems where we optimize the hyperparameters of approximate posterior distribution (often assumed to be a Gaussian distribution)
+
+<script type="math/tex; mode=display">q(\theta | \mu_\theta)</script>
+
+since differentiable learning solves the
+
+<script type="math/tex; mode=display">c = \pm\sqrt{a^2 + b^2}</script>
+
+supported by deep learning is very critical in keeping the sufficient model representative power of the underlying process. DL models can describe quite flexible and complex generative processes.
+
+RNN time-sequence modeling + Bayesian
+
+<h5 id="why-bayesian-inference">Why Bayesian Inference?</h5>
+
+In Bayesian modeling we posit that the model parameters (a.k.a. latent or hidden variables) generating the observed data are <em>uncertain</em> in our knowledge. Thus, our beliefs about the true values of <em>generating</em> variables are described by a probability. That is, we use a probability to denote our uncertainty about the hidden variables selected to describe the generating process. Let’s take the example of a Bayesian parametric regression such as
+<script type="math/tex">y = f(\mathbf{x}; \theta) + \epsilon</script> where <script type="math/tex">\mathbf{x}</script> and <script type="math/tex">y</script> are the given input vector and the observed output variable (scalar), and <script type="math/tex">\theta</script> is the <em>uncertain</em> latent variables (vector) or the generating parameters described by a probability distribution. There are important modeling assumptions.
+
+<ul>
+  <li><script type="math/tex">f(\mathbf{x}; \theta)</script> is an assumed generating function we specify with random noise <script type="math/tex">\epsilon \sim \mathrm{Normal}(0, \sigma^2)</script>.</li>
+  <li><script type="math/tex">f(\mathbf{x}; \theta)</script> is a deterministic function for any sampled value of <script type="math/tex">\theta \sim \mathrm{Normal} (\mathbf{0}, \sigma_{\theta}^2 \mathbf{I})</script>.</li>
+  <li>The level of <script type="math/tex">\sigma^2</script> is assumed to be fixed as a constant value and also related to how accurately we may specify our function <script type="math/tex">f(\mathbf{x}; \theta)</script>.</li>
+</ul>
+
+Whereas a non-Bayesian (deterministic) approach views <script type="math/tex">\theta</script> as a fixed variable to be estimated, a Bayesian (probabilistic) approach regards <script type="math/tex">\theta</script> as an uncertain variable whose <em>probability distribution</em> is to be estimated to explain the observed data. Maximum likelihood (ML) or maximum a posteriori (MAP) estimations are well-known non-Bayesian approaches determining a fixed <script type="math/tex">\theta</script>.
+
+Now let’s represent the above Bayesian regression in terms of probability distributions.
+
+The complete generative process in the Bayesian perspective is always described in the joint probability distribution of all observed and latent variables.
+Since <script type="math/tex">\mathbf{x}</script> is given and <script type="math/tex">\sigma^2</script> is assumed to be fixed  here, the joint distribution for the complete generative process is <script type="math/tex">p(y,\theta | \mathbf{x}, \sigma^2)</script>. Factorizing
+<script type="math/tex">p(y,\theta | \mathbf{x}, \sigma^2) = p(y | \theta,
+\mathbf{x}, \sigma^2) p(\theta)</script>, we represent the complete generative process in the combination of the likelihood and the prior distributions. It is important to note that the exact forms of the likelihood and the prior distributions are part of our modeling assumptions.
+
+<ul>
+  <li>The <em>likelihood</em> <script type="math/tex">p(y | \theta, \mathbf{x}, \sigma^2)</script> is our assumed probability model to describe a generating process of the observed variable <script type="math/tex">y</script> from a sample of latent variables <script type="math/tex">\theta</script>. Assuming that the likelihood is normally distributed with <script type="math/tex">f(\mathbf{x}; \theta)</script> as <script type="math/tex">y_\mu</script> (= the expected value of <script type="math/tex">y</script>) and <script type="math/tex">\sigma^2</script> as the Gaussian noise level,
+<script type="math/tex">\begin{aligned}
+y \sim p(y | \theta, \mathbf{x}, \sigma^2) = \mathrm{Normal}(y_\mu, \sigma^2 ) = \mathrm{Normal}(f(\mathbf{x}; \theta), \sigma^2 ).
+\end{aligned}</script></li>
+</ul>
+
+Note that a known deterministic physical model <script type="math/tex">y_\mu = f(\mathbf{x}; \theta)</script> can be easily incorporated into the likelihood.
+
+<ul>
+  <li>The <em>prior</em> <script type="math/tex">p(\theta)</script> is our assumed probability model to represent the uncertain information of latent variables <script type="math/tex">\theta</script> (= model parameters) before we consider the observed data <script type="math/tex">y</script>. The prior probability of model parameters is represented with some hyperparameters. For example, a Gaussian prior with independent parameters can be described with the hyperparameters of prior mean <script type="math/tex">\mathbf{\mu}_\theta</script> and prior variance assumed to be  <script type="math/tex">\mathbf{\sigma_{\theta}}^2</script>. These hyperparmeters are assumed to be known and fixed.
+<script type="math/tex">\theta \sim p(\theta | \mathbf{\mu}_\theta, \mathbf{\Lambda} ) = \mathrm{Normal} (\mathbf{\mu}_\theta,
+\mathrm{diag}(\mathbf{\sigma_{\theta}}^2))</script>.</li>
+</ul>
+
+Bayesian posterior inference is to update our belief or probability about <script type="math/tex">\theta</script> after observing the data <script type="math/tex">y</script>.  Mathematically the Bayes’ rule provides this update rule.
+
+<script type="math/tex; mode=display">p(\theta| y, \mathbf{x}, \sigma^2) = \frac{ p(y, \theta| \mathbf{x}, \sigma^2) } { p(y | \mathbf{x}, \sigma^2) }
+= \frac{ p(y | \theta,
+\mathbf{x}, \sigma^2) p(\theta | \mathbf{\mu}_\theta,
+\mathbf{\Lambda} )} { p(y | \mathbf{x}, \sigma^2) }</script>
+
+evidence <script type="math/tex">p(y | \mathbf{x}, \sigma^2) = \int p(y | \theta,
+\mathbf{x}, \sigma^2) p(\theta | \mathbf{\mu}_\theta,
+\mathbf{\Lambda} )  \,\mathrm{d} \theta</script>
+
+intractable
+<script type="math/tex">\theta</script> high-dimensional
+
+<script type="math/tex">p(\theta| y, \mathbf{x}, \sigma^2)</script> approximated by another probability distribution <script type="math/tex">q(\theta | \mathbf{\mu'}_\theta,
+\mathbf{\Lambda'} ) = \mathrm{Normal} (\mathbf{\mu'}_\theta,
+\mathrm{diag}( \mathbf{ {\sigma_{\theta}'}^2 }  ))</script>
+
+Note that the Bayesian posterior inference is to estimate
+analysis
+
+Bayesian probabilistic modeling provides a unified scheme on how to update the probabilistic beliefs (or infer the posterior distributions) about modeling parameters or latent variables using observed data. It also assumes the specification of generative processes (or model functions describing how outputs are produced from inputs) and prior distributions of modeling parameters or latent variables. This specification allows for easy incorporation of prior knowledge into the model form and associated parameter uncertainty.
+
+Although the initial choice of compared models and associated prior distributions may depend on our domain knowledge about the underlying problems, bayesian reasoning provides an objective scheme to compare different models and priors.
+
+Bayesian modeling allows us to build more robust and less overfitted models under uncertainty and give probabilistic estimates about target variables in the model. It sounds all good and simple, but a key difficulty in Bayesian probabilistic modeling arises from calculating the posterior distributions for a given complicated model structure and prior. It is very often intractable to compute the “exact” posterior distribution, but the variational inferences (VIs), one of the important methods in deep probabilistic programming, present a commonly-applicable approach to compute the “approximate” bayesian posterior.
+
+Since VIs transform Bayesian posterior inference problems (i.e., learning uncertain modeling parameters or latent variables) into optimization problems, the SGD optimization in underlying deep learning frameworks can solve the posterior inference problems.
+
+Again, the Bayesian approach uses a probability to measure the degree of uncertainty of the variables.
+
+the prior distribution is a Bayesian subjective probability of describing our knowledge about <script type="math/tex">\theta</script> in an objective fashion.
+
+is only described by a <em>subjective</em> probability. That is,
+
+the probabilistic model is a generative process describing how latent variables
+
+<table>
+  <tbody>
+    <tr>
+      <td>For example, when observation <script type="math/tex">y</script> is assumed to be generated depending on model parameters <script type="math/tex">\theta</script>, we can describe the overall generative process by <em>joint distribution</em> $$p(y, \theta) = p(y</td>
+      <td>\theta ) p(\theta)<script type="math/tex">.  Here,</script>p(\theta)$$ is the Bayesian specification about the</td>
+    </tr>
+  </tbody>
+</table>
+
+, the prior belief about the value of <script type="math/tex">\theta</script> before observing <script type="math/tex">y</script> may be viewed as Bayesian subjective probability of describing our best knowledge about <script type="math/tex">\theta</script> in an objective fashion.
+
+<table>
+  <tbody>
+    <tr>
+      <td>In addition, the likelihood probability $$p(y</td>
+      <td>\theta)<script type="math/tex">assumes a generating process of observation y for a given</script>\theta$$.  In other words, both prior and likelihood requires modeling assumptions in terms of their forms.</td>
+    </tr>
+  </tbody>
+</table>
+
+Bayesian modeling is generative.
+
+The only way to describe
+
+<table>
+  <tbody>
+    <tr>
+      <td>(e.g., P(y</td>
+      <td><script type="math/tex">\mu_y</script>) the mean <script type="math/tex">\mu</script> of the observation <script type="math/tex">y</script>)</td>
+    </tr>
+  </tbody>
+</table>
+
+the probabilities we put as a prior or
+
+Bayesian probabilities about the parameters
+
+are subjective,
+
+(e.g., inferring approximate posterior inference)
+
+conditions (parameterized functions executed on  and perform the model parameter optimization by
+
+model optimization using “differentiable” modeling
+
+hyperparameter
+
+differentiable computing techniques that deep learning provides for   In this manner
+
+differentiable programming power.
+
+Deep Learning (frameworks) as a style of computational modeling language to design a composite (hybrid) model of simple building blocks and optimize them in differentiable computation (backprop &amp; SGDs).  This is now called “Differentiable Programming”.
+
+A deep probabilistic programming framework (e.g., Pyro, Edward) is an extended deep learning framework (e.g., PyTorch, TensorFlow) enabling probabilistic model specifications and Bayesian inferences.
+
+Deep learning frameworks can be viewed as
+
+provide a good way to specify a model by combining parametric functional blocks
+
+networks of
+
+as the network of parametric functional blocks
+
+<blockquote>
+  “Differentiable Programming is little more than a rebranding of the modern collection Deep Learning techniques, the same way Deep Learning was a rebranding of the modern incarnations of neural nets with more than two layers. But the important point is that people are now building a new kind of software by assembling networks of parameterized functional blocks and by training them from examples using some form of gradient-based optimization. An increasingly large number of people are defining the network procedurally in a data-dependant way (with loops and conditionals), allowing them to change dynamically as a function of the input data fed to them. It’s really very much like a regular progam, except it’s parameterized, automatically differentiated, and trainable/optimizable. Dynamic networks have become increasingly popular (particularly for NLP), thanks to deep learning frameworks that can handle them such as PyTorch and Chainer (note: our old deep learning framework Lush could handle a particular kind of dynamic nets called Graph Transformer Networks, back in 1994. It was needed for text recognition).”
+</blockquote>
+
+Compared to the original deep learning frameworks that aim to make “deterministic” models for point-estimate predictions, DPP frameworks allow us to 1) specify “probabilistic” models involving the uncertain distributions of model parameters or latent variables, 2) provide approximate Bayesian inferences (e.g., variational inferences) using the powerful stochastic gradient decent algorithms of the original DL frameworks. Thus, DPPs naturally integrate the benefits of bayesian modeling and deep learning.
+
+Deep learning frameworks provide a tool to specify models in “deterministic” neural-networks and other kinds of functional equations. It is straightforward to specify a hierarchical (mixed, hybrid) model that combines multiple “component” models. Each component model may be based on different sets of feature variables. Non-probabilistic deep learning models do not assume the uncertainty in model parameters (e.g., weights in NN).
+
+Let’s use Pyro to illustrate how to perform Bayesian regression with a known function form.
+
+Suppose we’re given a dataset <script type="math/tex">D</script> of the form
+<script type="math/tex">D = {(X_i,y_i)}</script> for <script type="math/tex">i=1,2,...,N</script>
+The goal of regression is to fit a function to the data of the form:
+
+<script type="math/tex; mode=display">y_i = f(X_i; \theta ) + \epsilon</script>
+
+Note that function <script type="math/tex">f</script> can be any known form of deterministic equation or neural network involving the uncertain parameter <script type="math/tex">\theta</script>.
+
+Let’s first implement regression in PyTorch and learn point estimates for the parameters $$\theta. Then we’ll see how to incorporate uncertainty into our estimates by using Pyro to implement Bayesian regression.
+
+<h5 id="setup">Setup</h5>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">N</span> <span class="o">=</span> <span class="mi">100</span>  <span class="c"># size of toy data</span>
+<span class="n">p</span> <span class="o">=</span> <span class="mi">1</span>    <span class="c"># number of features</span>
+
+<span class="k">def</span> <span class="nf">build_linear_dataset</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">noise_std</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">X</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">noise_std</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>
+    <span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">N</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span> <span class="n">y</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">N</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">X</span><span class="p">)),</span> <span class="n">Variable</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+</code></pre></div></div>
+
+<ul>
+  <li>
+    specify model (prior, likelihood)
+  </li>
+  <li>
+    specify inference (form of approximated posterior or variational posterior)
+  </li>
+</ul>
+
+Why probabilistic modeling? To correctly capture uncertainty in models and predictions for unsupervised and semi-supervised learning, and to provide AI systems with declarative prior knowledge.
+
+Why (universal) probabilistic programs? To provide a clear and high-level, but complete, language for specifying complex models.
+
+Why deep probabilistic models? To learn generative knowledge from data and reify knowledge of how to do inference.
+
+Why inference by optimization? To enable scaling to large data and leverage advances in modern optimization and variational inference.
+
+enables Pyro programs to include stochastic control structure, that is, random choices in a Pyro program can control the presence of other random … To enable scaling to large data and leverage advances in modern optimization and variational inference.
+
+This naturally combines the advantages of two schemes.  The deep learning scheme allows us to specify the model structure (function form)
+
+specify a model via neural nets or other parameteric funciton forms
+
+Let <script type="math/tex">Y_1,\ldots,Y_N</script> be <script type="math/tex">(d+1)</script>-dimensional observations (collecting the <script type="math/tex">X_n\in\mathbb{R}^d</script> covariate within each <script type="math/tex">Y_n\in\mathbb{R}</script> response for shorthand) generated from some model with unknown parameters <script type="math/tex">\theta\in\Theta</script>.
+
+<strong>Goal</strong>: Find the “true” parameters <script type="math/tex">\theta^* \in\Theta</script>.
 
 <strong>Intuition</strong>: The idea is to find a set of <script type="math/tex">k</script> constraints, or “moments”, involving the parameters <script type="math/tex">\theta</script>. What makes GMMs nice is that you need no information per say about how the model depends on <script type="math/tex">\theta</script>. Certainly they can be used to construct moments (special case: maximum likelihood estimation (MLE)), but one can use, for example, statistical moments (special case: method of moments (MoM)) as the constraints. Analogously, tensor decompositions are used in the case of spectral methods.
 
 More formally, the <script type="math/tex">k</script> <strong>moment conditions</strong> for a vector-valued function <script type="math/tex">g(Y,\cdot):\Theta\to\mathbb{R}^k</script> is
 
-<script type="math/tex; mode=display">m(\theta^*) \equiv \mathbb{E}[g(Y,\theta^*)] = 0_{k\times 1},</script>
+[
+m(\theta^* ) \equiv \mathbb{E}[g(Y,\theta^* )] = 0_{k\times 1},
+]
 
 where <script type="math/tex">0_{k\times 1}</script> is the <script type="math/tex">k\times 1</script> zero vector.
 
 As we cannot analytically derive the expectation for arbitrary <script type="math/tex">g</script>, we use the sample moments instead:
 
-<script type="math/tex; mode=display">\hat m(\theta) \equiv \frac{1}{N}\sum_{n=1}^N g(Y_n,\theta)</script>
+[
+\hat m(\theta) \equiv \frac{1}{N}\sum_{n=1}^N g(Y_n,\theta)
+]
 
 By the Law of Large Numbers, <script type="math/tex">\hat{m}(\theta)\to m(\theta)</script>, so the problem is thus to find the <script type="math/tex">\theta</script> which sets <script type="math/tex">\hat m(\theta)</script> to zero.
 
@@ -262,6 +477,13 @@ Setting <script type="math/tex">g(Y_n,\theta)\equiv Y_n-\mu</script>, <script ty
 
 <h2 id="references">References</h2>
 [1] Alastair Hall. <em>Generalized Method of Moments (Advanced Texts in Econometrics)</em>. Oxford University Press, 2005.
+
+@inproceedings{tran2017deep,
+  author = {Dustin Tran and Matthew D. Hoffman and Rif A. Saurous and Eugene Brevdo and Kevin Murphy and David M. Blei},
+  title = {Deep probabilistic programming},
+  booktitle = {International Conference on Learning Representations},
+  year = {2017}
+}
  <a href="http://localhost:4000/blog/2018/01/01/deep-prob-modeling/" title="Read more"><strong>Read more...</strong></a>
   </div>
   <hr class="transp">

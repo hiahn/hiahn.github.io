@@ -16,7 +16,7 @@ callback([
   } ,
 
   {
-    "text": "Introducing PPL",
+    "text": "Bayesian regression with a known function form",
     "href": "http://localhost:4000/blog/2018/01/01/deep-prob-modeling/"
   } 
 

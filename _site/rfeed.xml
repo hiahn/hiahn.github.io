@@ -5,7 +5,7 @@
     <description>Foo's blog...</description>
     <link>http://localhost:4000/</link>
     <atom:link href="http://localhost:4000/rfeed.xml" rel="self" type="application/rss+xml" />
-    <updated>2018-01-01T01:19:15-08:00</updated>
+    <updated>2018-04-04T01:03:08-07:00</updated>
     <id>http://localhost:4000</id>
     <author>
       <name>Foo Boo</name>
