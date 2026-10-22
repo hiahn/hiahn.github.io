@@ -46,6 +46,12 @@ mark{background:var(--hl);color:inherit;border-radius:4px;padding:0 3px}
 .score{font-size:56px;font-weight:800;text-align:center;margin:12px 0 0;color:var(--acc)}
 .center{text-align:center}
 .miss{border-left:4px solid var(--bad)}
+.bar.t i{background:var(--bad);transition:none}
+.fc{min-height:240px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;width:100%;padding:24px 18px;margin:12px 0;font-size:20px}
+.fc small{color:var(--mute);font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.fc .ph{font-size:26px;font-weight:800;color:var(--acc);margin-bottom:12px}
+.fc .e{font-size:16px;font-style:italic}
+.fc.back{border-color:var(--acc)}
 </style>
 </head>
 <body>
@@ -176,6 +182,8 @@ const rx=p=>new RegExp(p.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"i");
 const hl=(e,p)=>esc(e).replace(rx(esc(p)),m=>"<mark>"+m+"</mark>");
 const speak=t=>{try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="en-US";speechSynthesis.speak(u)}catch(e){}};
 const allX=()=>L.flatMap((l,li)=>l.x.map((x,xi)=>({li,xi,p:x[0],m:x[1],e:x[2]})));
+const pairsAll=()=>L.flatMap((l,li)=>l.pr.map((_,pi)=>[li,pi]));
+const LIMIT=12000;
 const X=(li,xi)=>({li,xi,p:L[li].x[xi][0],m:L[li].x[xi][1],e:L[li].x[xi][2]});
 
 /* ---------- question generation ---------- */
@@ -223,12 +231,16 @@ function home(){
   <p class="sub">15 lessons &middot; ${allX().length} expressions to learn. Study a lesson, then test yourself.</p>
   <div class="row"><button class="btn" id="mix">Mixed quiz</button>
   <button class="btn ghost" id="weak" ${weakN?"":"disabled"}>Practise weak spots${weakN?" ("+weakN+")":""}</button></div>
+  <div class="row" style="margin-top:10px"><button class="btn ghost" id="fcAll">Flashcards</button>
+  <button class="btn ghost" id="timed">Timed challenge${S.bestTimed!=null?" (best "+S.bestTimed+"%)":""}</button></div>
   <div style="height:8px"></div>`+
   L.map((l,i)=>`<button class="card lesson" data-i="${i}"><span class="n">${l.n}</span>
     <span class="t">${esc(l.t)}<small>${l.min?l.min+" min &middot; ":""}${l.x.length} expressions</small></span>
     ${S.best[i]!=null?`<span class="badge">${S.best[i]}%</span>`:""}</button>`).join("");
   $.querySelectorAll(".lesson").forEach(b=>b.onclick=()=>lesson(+b.dataset.i));
-  document.getElementById("mix").onclick=()=>startQuiz("Mixed quiz",build(allX(),L.flatMap((l,li)=>l.pr.map((_,pi)=>[li,pi])),15),null);
+  document.getElementById("mix").onclick=()=>startQuiz("Mixed quiz",build(allX(),pairsAll(),15),null);
+  document.getElementById("fcAll").onclick=()=>cards("All lessons",allX(),null);
+  document.getElementById("timed").onclick=()=>startQuiz("Timed challenge",build(allX(),pairsAll(),15),null,true);
   document.getElementById("weak").onclick=()=>{
     const items=Object.keys(S.weak).map(k=>X(...k.split(".").map(Number)));
     startQuiz("Weak spots",build(items,[],Math.min(10,items.length*2)),null);
@@ -244,36 +256,46 @@ function lesson(i){
   <label style="color:var(--mute);font-size:14px"><input type="checkbox" id="cv"> Cover answers</label></div>
   <div id="xs">`+l.x.map(x=>`<div class="card x"><div class="p"><span>${esc(x[0])}</span><button class="say" title="Listen" data-p="${esc(x[0])}">&#128266;</button></div>
     <div class="m">${esc(x[1])}</div><div class="e">${hl(x[2],x[0])}</div></div>`).join("")+`</div>
-  <div class="row" style="margin-top:16px"><button class="btn" id="go">Start quiz</button></div>`;
+  <div class="row" style="margin-top:16px"><button class="btn" id="go">Start quiz</button><button class="btn ghost" id="gt">Timed quiz</button><button class="btn ghost" id="gf">Flashcards</button></div>`;
   document.getElementById("b").onclick=home;
   const xs=document.getElementById("xs");
   document.getElementById("cv").onchange=e=>xs.classList.toggle("cover",e.target.checked);
   xs.querySelectorAll(".x").forEach(c=>c.onclick=()=>c.classList.toggle("show"));
   xs.querySelectorAll(".say").forEach(b=>b.onclick=e=>{e.stopPropagation();speak(b.dataset.p)});
-  document.getElementById("go").onclick=()=>startQuiz("Lesson "+l.n+": "+l.t,
-    build(l.x.map((_,xi)=>X(i,xi)),l.pr.map((_,pi)=>[i,pi]),10),i);
+  const lq=timed=>startQuiz("Lesson "+l.n+": "+l.t+(timed?" (timed)":""),
+    build(l.x.map((_,xi)=>X(i,xi)),l.pr.map((_,pi)=>[i,pi]),10),i,timed);
+  document.getElementById("go").onclick=()=>lq(false);
+  document.getElementById("gt").onclick=()=>lq(true);
+  document.getElementById("gf").onclick=()=>cards("Lesson "+l.n+": "+l.t,l.x.map((_,xi)=>X(i,xi)),i);
   scrollTo(0,0);
 }
-function startQuiz(title,qs,lessonIdx){Q={title,qs,i:0,score:0,miss:[],lesson:lessonIdx,done:false};ask()}
+let T=null;
+const stopT=()=>{clearInterval(T);T=null};
+function startQuiz(title,qs,lessonIdx,timed){Q={title,qs,i:0,score:0,miss:[],lesson:lessonIdx,timed:!!timed};ask()}
 function ask(){
   const q=Q.qs[Q.i];
   $.innerHTML=`<button class="back" id="b">&larr; Quit</button>
-  <div class="bar"><i style="width:${Q.i/Q.qs.length*100}%"></i></div>
+  <div class="bar" ${Q.timed?'style="margin-bottom:4px"':""}><i style="width:${Q.i/Q.qs.length*100}%"></i></div>
+  ${Q.timed?'<div class="bar t"><i id="tb" style="width:100%"></i></div>':""}
   <p class="q">${esc(q.kind)} &middot; ${Q.i+1}/${Q.qs.length}</p>
   <div class="big">${q.html?q.text:esc(q.text)}</div>
   <div id="o">${q.opts.map((o,k)=>`<button class="opt" data-k="${k}">${esc(o)}</button>`).join("")}</div>
   <div id="fb"></div>`;
-  document.getElementById("b").onclick=()=>Q.lesson!=null?lesson(Q.lesson):home();
+  document.getElementById("b").onclick=()=>{stopT();Q.lesson!=null?lesson(Q.lesson):home()};
   $.querySelectorAll(".opt").forEach(b=>b.onclick=()=>pick(+b.dataset.k));
+  stopT();
+  if(Q.timed){const t0=Date.now(),bar=document.getElementById("tb");
+    T=setInterval(()=>{const f=1-(Date.now()-t0)/LIMIT;bar.style.width=Math.max(f,0)*100+"%";if(f<=0)pick(-1)},100)}
 }
 function pick(k){
+  stopT();
   const q=Q.qs[Q.i],right=k===q.ans;
   const btns=$.querySelectorAll(".opt");
   btns.forEach((b,j)=>{b.disabled=true;if(j===q.ans)b.classList.add("ok");else if(j===k)b.classList.add("bad")});
   if(right)Q.score++;else Q.miss.push(q);
   if(q.id){if(right)delete S.weak[q.id];else S.weak[q.id]=1;save()}
   const last=Q.i===Q.qs.length-1;
-  document.getElementById("fb").innerHTML=`<div class="fb"><b style="color:var(${right?"--ok":"--bad"})">${right?"Correct!":"Not quite."}</b><br>${q.exp}</div>
+  document.getElementById("fb").innerHTML=`<div class="fb"><b style="color:var(${right?"--ok":"--bad"})">${right?"Correct!":k<0?"Time's up!":"Not quite."}</b><br>${q.exp}</div>
   <div class="row"><button class="btn" id="nx">${last?"See results":"Next"}</button>${q.say?`<button class="btn ghost" id="sp">&#128266; Listen</button>`:""}</div>`;
   document.getElementById("nx").onclick=()=>{if(last)finish();else{Q.i++;ask()}};
   const sp=document.getElementById("sp");if(sp)sp.onclick=()=>speak(q.say);
@@ -281,7 +303,8 @@ function pick(k){
 }
 function finish(){
   const pct=Math.round(Q.score/Q.qs.length*100);
-  if(Q.lesson!=null&&(S.best[Q.lesson]==null||pct>S.best[Q.lesson])){S.best[Q.lesson]=pct;save()}
+  if(Q.timed&&Q.lesson==null&&(S.bestTimed==null||pct>S.bestTimed)){S.bestTimed=pct;save()}
+  if(!Q.timed&&Q.lesson!=null&&(S.best[Q.lesson]==null||pct>S.best[Q.lesson])){S.best[Q.lesson]=pct;save()}
   const msg=pct===100?"Perfect! You're ready to use these.":pct>=70?"Great job. Review the misses below.":"Keep practising. Re-read the lesson and try again.";
   $.innerHTML=`<div class="bar"><i style="width:100%"></i></div><p class="q center">${esc(Q.title)}</p>
   <div class="score">${pct}%</div><p class="center sub">${Q.score} of ${Q.qs.length} correct. ${msg}</p>`+
@@ -291,6 +314,36 @@ function finish(){
   document.getElementById("hm").onclick=home;
   document.getElementById("again").onclick=()=>Q.lesson!=null?lesson(Q.lesson):home();
   scrollTo(0,0);
+}
+function cards(title,items,back){
+  let deck=shuf(items),flip=false,known=0,again=0;const total=items.length;
+  const exit=()=>back!=null?lesson(back):home();
+  function show(){
+    if(!deck.length){
+      $.innerHTML=`<div class="bar"><i style="width:100%"></i></div><p class="q center">${esc(title)}</p>
+      <div class="score">&#10003;</div><p class="center sub">All ${total} cards learned. You pressed "Again" ${again} time${again===1?"":"s"}.</p>
+      <div class="row"><button class="btn" id="r">Restart</button><button class="btn ghost" id="x">Done</button></div>`;
+      document.getElementById("r").onclick=()=>cards(title,items,back);
+      document.getElementById("x").onclick=exit;return;
+    }
+    const c=deck[0];
+    $.innerHTML=`<button class="back" id="b">&larr; Quit</button>
+    <div class="bar"><i style="width:${known/total*100}%"></i></div>
+    <p class="q">${esc(title)} &middot; ${known}/${total} learned</p>
+    <button class="card fc ${flip?"back":""}" id="c">${flip
+      ?`<small>Expression</small><div class="ph">${esc(c.p)}</div><div class="e">${hl(c.e,c.p)}</div>`
+      :`<small>Goal &mdash; what would you say?</small>${esc(c.m)}<small style="margin-top:14px">Tap to flip</small>`}</button>
+    <div class="row">${flip?`<button class="btn ghost" id="ag">Again</button><button class="btn" id="ok">Got it</button><button class="btn ghost" id="sp">&#128266;</button>`:""}</div>`;
+    document.getElementById("b").onclick=exit;
+    document.getElementById("c").onclick=()=>{flip=!flip;show()};
+    if(flip){
+      const k=c.li+"."+c.xi;
+      document.getElementById("sp").onclick=()=>speak(c.p);
+      document.getElementById("ok").onclick=()=>{deck.shift();known++;delete S.weak[k];save();flip=false;show()};
+      document.getElementById("ag").onclick=()=>{deck.push(deck.shift());again++;S.weak[k]=1;save();flip=false;show()};
+    }
+  }
+  show();scrollTo(0,0);
 }
 home();
 </script>
