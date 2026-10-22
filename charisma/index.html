@@ -180,12 +180,12 @@ x:[["How's your week going?","Easy opener with colleagues","Hi Sam, how's your w
 ["Small world!","React to a surprising coincidence","You also know Priya? Small world!"],
 ["It was great chatting with you","End a conversation pleasantly","It was great chatting with you. Let's stay in touch."]],
 pr:[["How did you get into that?","Good weather, right? ...OK, bye.","Follow-up questions keep small talk alive."],["It was great chatting with you.","Okay, I have to go.","A warm closing leaves a lasting impression."]]},
-{t:"The Power of a Perfect Pause",min:12,tip:"Silence feels longer to you than to listeners. A pause before or after a key point adds weight.",
+{t:"The Power of a Perfect Pause",min:12,tip:"Silence feels longer to you than to listeners. Say a short cue out loud, then stop talking for two full seconds.",
 x:[["Let that sink in","Pause after an important fact","We grew 300% in one year. Let that sink in."],
-["Take a beat","Briefly stop before answering or continuing","Take a beat before you answer a tough question."],
+["Think about that for a second","Invite the audience to pause and absorb a point","We lose 40% of customers in week one. Think about that for a second."],
 ["Let me gather my thoughts","Buy time calmly instead of using filler words","Let me gather my thoughts for a moment."],
 ["Here's the thing","Slow down and draw attention to a key point","Here's the thing: trust takes years to build."],
-["speak volumes","Communicate a lot without many words","A calm pause can speak volumes."]],
+["That's a great question","Buy a calm pause before answering a hard question","That's a great question. Let me think about it for a moment."]],
 pr:[["Let me gather my thoughts.","Um, uh, like, you know, um...","A silent pause sounds composed; filler sounds nervous."],["We grew 300%. Let that sink in.","We grew 300%, and then, and then, and then...","Give the number room to land."]]}
 ];
 
@@ -263,12 +263,13 @@ const MORE=[
 ["Let's catch up soon","Close with a friendly invitation","It was lovely to see you. Let's catch up soon."]],
 [["Let me rephrase that","Restart a sentence after a slip","Let me rephrase that so it's clearer."],
 ["Give me a second","Ask for a moment to think","Give me a second to find the right word."],
-["a moment of silence","A short, intentional pause","Allow a moment of silence after your key point."],
-["Pause for effect","Stop briefly to add impact","Pause for effect before you reveal the result."],
+["Let me say that again","Repeat a key line after a pause so it sticks","Let me say that again: trust takes years to build."],
+["I'll pause here for questions","Stop deliberately and hand the floor to the audience","That covers the plan. I'll pause here for questions."],
 ["Now, here's the key point","Signal the most important idea","Now, here's the key point: we must act today."]]
 ];
 L.forEach((l,i)=>l.x.push(...MORE[i]));
 L.forEach((l,i)=>l.n=i+1);
+if(!S.m2){["14.1","14.4","14.7","14.8"].forEach(k=>{delete S.stats[k];delete S.weak[k]});S.m2=1;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 
 /* ---------- storage ---------- */
 const KEY="charisma-quiz-v1";
