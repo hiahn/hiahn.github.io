@@ -269,13 +269,14 @@ const MORE=[
 ];
 L.forEach((l,i)=>l.x.push(...MORE[i]));
 L.forEach((l,i)=>l.n=i+1);
-if(!S.m2){["14.1","14.4","14.7","14.8"].forEach(k=>{delete S.stats[k];delete S.weak[k]});S.m2=1;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 
 /* ---------- storage ---------- */
 const KEY="charisma-quiz-v1";
 let S={best:{},weak:{}};
 try{S=Object.assign(S,JSON.parse(localStorage.getItem(KEY)||"{}"))}catch(e){}
 S.stats=S.stats||{};S.days=S.days||{};S.hist=S.hist||[];
+// lesson 15 expressions were replaced; drop stats tied to the old ones
+if(!S.m2){["14.1","14.4","14.7","14.8"].forEach(k=>{delete S.stats[k];delete S.weak[k]});S.m2=1;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 const dayKey=d=>d.toLocaleDateString("en-CA");
 function rec(id,right){
