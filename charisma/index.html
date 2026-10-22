@@ -72,6 +72,8 @@ mark{background:var(--hl);color:inherit;border-radius:4px;padding:0 3px}
 .fc .ph{font-size:26px;font-weight:800;color:var(--acc);margin-bottom:12px}
 .fc .e{font-size:16px;font-style:italic}
 .fc.back{border-color:var(--acc)}
+#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:.25s;max-width:90%;text-align:center}
+#toast.on{opacity:1;transform:translate(-50%,0)}
 </style>
 </head>
 <body>
@@ -286,7 +288,26 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",
 const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 const rx=p=>new RegExp(p.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"i");
 const hl=(e,p)=>esc(e).replace(rx(esc(p)),m=>"<mark>"+m+"</mark>");
-const speak=t=>{try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="en-US";speechSynthesis.speak(u)}catch(e){}};
+let voices=[];
+const loadVoices=()=>{try{voices=speechSynthesis.getVoices()}catch(e){}};
+try{loadVoices();speechSynthesis.addEventListener("voiceschanged",loadVoices)}catch(e){}
+function toast(msg){
+  let t=document.getElementById("toast");
+  if(!t){t=document.createElement("div");t.id="toast";document.body.appendChild(t)}
+  t.textContent=msg;t.className="on";clearTimeout(toast.t);toast.t=setTimeout(()=>t.className="",3000);
+}
+function speak(text){
+  if(!("speechSynthesis" in window)||!window.SpeechSynthesisUtterance){toast("This browser can't read text aloud.");return}
+  const ss=speechSynthesis;
+  const u=new SpeechSynthesisUtterance(text);
+  const v=voices.find(v=>/^en[-_]US/i.test(v.lang))||voices.find(v=>/^en/i.test(v.lang));
+  if(v){u.voice=v;u.lang=v.lang}else u.lang="en-US";
+  u.rate=.9;
+  u.onerror=e=>{if(e.error!=="canceled"&&e.error!=="interrupted")toast("Couldn't play audio ("+e.error+"). Check volume and silent mode.")};
+  const go=()=>{ss.resume();ss.speak(u)};
+  // cancelling right before speak() silently drops the utterance on some browsers
+  if(ss.speaking||ss.pending){ss.cancel();setTimeout(go,120)}else go();
+}
 const allX=()=>L.flatMap((l,li)=>l.x.map((x,xi)=>({li,xi,p:x[0],m:x[1],e:x[2]})));
 const pairsAll=()=>L.flatMap((l,li)=>l.pr.map((_,pi)=>[li,pi]));
 const LIMIT=12000;
