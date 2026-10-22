@@ -45,6 +45,19 @@ mark{background:var(--hl);color:inherit;border-radius:4px;padding:0 3px}
 .fb{margin:14px 0;padding:12px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line)}
 .score{font-size:56px;font-weight:800;text-align:center;margin:12px 0 0;color:var(--acc)}
 .center{text-align:center}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:12px 0}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px}
+.stat b{display:block;font-size:26px;line-height:1.1;color:var(--acc)}
+.stat span{color:var(--mute);font-size:13px}
+.seg{display:flex;height:8px;border-radius:9px;background:var(--line);overflow:hidden;margin-top:6px}
+.seg i{display:block;height:100%}
+.seg .m{background:var(--ok)}.seg .l{background:var(--acc2)}
+.days{display:flex;gap:8px;align-items:flex-end;height:90px;margin-top:8px}
+.days div{flex:1;text-align:center;font-size:12px;color:var(--mute);display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.days i{display:block;background:linear-gradient(var(--acc2),var(--acc));border-radius:6px 6px 2px 2px;min-height:3px;margin-bottom:4px}
+.dl{width:100%;text-align:left;display:block}
+.dl small{color:var(--mute)}
+.legend{font-size:13px;color:var(--mute)}
 .miss{border-left:4px solid var(--bad)}
 .bar.t i{background:var(--bad);transition:none}
 .fc{min-height:240px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;width:100%;padding:24px 18px;margin:12px 0;font-size:20px}
@@ -252,7 +265,13 @@ L.forEach((l,i)=>l.n=i+1);
 const KEY="charisma-quiz-v1";
 let S={best:{},weak:{}};
 try{S=Object.assign(S,JSON.parse(localStorage.getItem(KEY)||"{}"))}catch(e){}
+S.stats=S.stats||{};S.days=S.days||{};S.hist=S.hist||[];
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const dayKey=d=>d.toLocaleDateString("en-CA");
+function rec(id,right){
+  if(id){const a=S.stats[id]||(S.stats[id]=[0,0]);a[1]++;if(right)a[0]++}
+  const d=dayKey(new Date());S.days[d]=(S.days[d]||0)+1;save();
+}
 
 /* ---------- helpers ---------- */
 const $=document.getElementById("app");
@@ -312,6 +331,7 @@ function home(){
   <div class="row"><button class="btn" id="mix">Mixed quiz</button>
   <button class="btn ghost" id="weak" ${weakN?"":"disabled"}>Practise weak spots${weakN?" ("+weakN+")":""}</button></div>
   <div class="row" style="margin-top:10px"><button class="btn ghost" id="fcAll">Flashcards</button>
+  <button class="btn ghost" id="prog">Progress</button>
   <button class="btn ghost" id="timed">Timed challenge${S.bestTimed!=null?" (best "+S.bestTimed+"%)":""}</button></div>
   <div style="height:8px"></div>`+
   L.map((l,i)=>`<button class="card lesson" data-i="${i}"><span class="n">${l.n}</span>
@@ -321,10 +341,55 @@ function home(){
   document.getElementById("mix").onclick=()=>startQuiz("Mixed quiz",build(allX(),pairsAll(),15),null);
   document.getElementById("fcAll").onclick=()=>cards("All lessons",allX(),null);
   document.getElementById("timed").onclick=()=>startQuiz("Timed challenge",build(allX(),pairsAll(),15),null,true);
-  document.getElementById("weak").onclick=()=>{
-    const items=Object.keys(S.weak).map(k=>X(...k.split(".").map(Number)));
-    startQuiz("Weak spots",build(items,[],Math.min(10,items.length*2)),null);
-  };
+  document.getElementById("weak").onclick=weakQuiz;
+  document.getElementById("prog").onclick=dash;
+  scrollTo(0,0);
+}
+function weakQuiz(){
+  const items=Object.keys(S.weak).map(k=>X(...k.split(".").map(Number)));
+  if(items.length)startQuiz("Weak spots",build(items,[],Math.min(10,items.length*2)),null);
+}
+function dash(){
+  const xs=allX(),key=x=>x.li+"."+x.xi,st=x=>S.stats[key(x)]||[0,0];
+  const mast=x=>st(x)[0]>=2&&!S.weak[key(x)],seen=x=>st(x)[1]>0;
+  let r=0,t=0;Object.values(S.stats).forEach(a=>{r+=a[0];t+=a[1]});
+  const M=xs.filter(mast).length;
+  // streak: consecutive days with activity, ending today (or yesterday)
+  const d=new Date();let streak=0;
+  if(!S.days[dayKey(d)])d.setDate(d.getDate()-1);
+  while(S.days[dayKey(d)]){streak++;d.setDate(d.getDate()-1)}
+  const week=[...Array(7)].map((_,i)=>{const e=new Date();e.setDate(e.getDate()-(6-i));
+    return{n:S.days[dayKey(e)]||0,l:e.toLocaleDateString("en",{weekday:"narrow"})}});
+  const mx=Math.max(1,...week.map(w=>w.n));
+  const weak=xs.filter(x=>seen(x)&&st(x)[0]<st(x)[1])
+    .sort((a,b)=>st(a)[0]/st(a)[1]-st(b)[0]/st(b)[1]||st(b)[1]-st(a)[1]).slice(0,5);
+  $.innerHTML=`<button class="back" id="b">&larr; All lessons</button><h2>Your progress</h2>
+  <div class="stats">
+   <div class="stat"><b>${M}/${xs.length}</b><span>expressions mastered</span></div>
+   <div class="stat"><b>${t?Math.round(r/t*100)+"%":"&ndash;"}</b><span>overall accuracy</span></div>
+   <div class="stat"><b>${streak}</b><span>day streak</span></div>
+   <div class="stat"><b>${S.hist.length}</b><span>quizzes completed</span></div></div>
+  <div class="seg"><i class="m" style="width:${M/xs.length*100}%"></i><i class="l" style="width:${(xs.filter(x=>seen(x)&&!mast(x)).length)/xs.length*100}%"></i></div>
+  <p class="legend">Mastered = answered correctly twice and not currently on your weak list. Lighter = in progress.</p>
+  <h2 style="margin-top:22px">Answers this week</h2>
+  <div class="card"><div class="days">${week.map(w=>`<div><i style="height:${w.n/mx*70}px"></i>${w.l}</div>`).join("")}</div></div>
+  <h2 style="margin-top:22px">Lessons</h2>`+
+  L.map((l,i)=>{const it=l.x.map((_,xi)=>X(i,xi)),m=it.filter(mast).length,p=it.filter(x=>seen(x)&&!mast(x)).length;
+    let rr=0,tt=0;it.forEach(x=>{rr+=st(x)[0];tt+=st(x)[1]});
+    return `<button class="card dl" data-i="${i}"><b>${l.n}. ${esc(l.t)}</b>
+    <small> &middot; ${m}/${it.length} mastered${tt?" &middot; "+Math.round(rr/tt*100)+"% accurate":""}${S.best[i]!=null?" &middot; best "+S.best[i]+"%":""}</small>
+    <div class="seg"><i class="m" style="width:${m/it.length*100}%"></i><i class="l" style="width:${p/it.length*100}%"></i></div></button>`}).join("")+
+  `<h2 style="margin-top:22px">Needs work</h2>`+
+  (weak.length?weak.map(x=>`<div class="card miss"><b>${esc(x.p)}</b> <small style="color:var(--mute)">${st(x)[0]}/${st(x)[1]} correct</small><br>${esc(x.m)}</div>`).join("")
+    :`<p class="sub">Nothing to flag yet. Take a quiz to see where you slip.</p>`)+
+  `<h2 style="margin-top:22px">Recent quizzes</h2>`+
+  (S.hist.length?S.hist.slice(-5).reverse().map(h=>`<div class="card"><b>${h.pct}%</b> &middot; ${esc(h.title)}<br><small style="color:var(--mute)">${new Date(h.t).toLocaleDateString()}</small></div>`).join("")
+    :`<p class="sub">No quizzes yet.</p>`)+
+  `<div class="row" style="margin-top:20px">${Object.keys(S.weak).length?`<button class="btn" id="wk">Practise weak spots</button>`:""}<button class="btn ghost" id="rs">Reset progress</button></div>`;
+  document.getElementById("b").onclick=home;
+  $.querySelectorAll(".dl").forEach(b=>b.onclick=()=>lesson(+b.dataset.i));
+  const wk=document.getElementById("wk");if(wk)wk.onclick=weakQuiz;
+  document.getElementById("rs").onclick=()=>{if(confirm("Erase all scores, weak spots and history?")){S={best:{},weak:{},stats:{},days:{},hist:[]};save();home()}};
   scrollTo(0,0);
 }
 function lesson(i){
@@ -373,6 +438,7 @@ function pick(k){
   const btns=$.querySelectorAll(".opt");
   btns.forEach((b,j)=>{b.disabled=true;if(j===q.ans)b.classList.add("ok");else if(j===k)b.classList.add("bad")});
   if(right)Q.score++;else Q.miss.push(q);
+  rec(q.id,right);
   if(q.id){if(right)delete S.weak[q.id];else S.weak[q.id]=1;save()}
   const last=Q.i===Q.qs.length-1;
   document.getElementById("fb").innerHTML=`<div class="fb"><b style="color:var(${right?"--ok":"--bad"})">${right?"Correct!":k<0?"Time's up!":"Not quite."}</b><br>${q.exp}</div>
@@ -385,6 +451,7 @@ function finish(){
   const pct=Math.round(Q.score/Q.qs.length*100);
   if(Q.timed&&Q.lesson==null&&(S.bestTimed==null||pct>S.bestTimed)){S.bestTimed=pct;save()}
   if(!Q.timed&&Q.lesson!=null&&(S.best[Q.lesson]==null||pct>S.best[Q.lesson])){S.best[Q.lesson]=pct;save()}
+  S.hist.push({t:Date.now(),title:Q.title,pct});S.hist=S.hist.slice(-50);save();
   const msg=pct===100?"Perfect! You're ready to use these.":pct>=70?"Great job. Review the misses below.":"Keep practising. Re-read the lesson and try again.";
   $.innerHTML=`<div class="bar"><i style="width:100%"></i></div><p class="q center">${esc(Q.title)}</p>
   <div class="score">${pct}%</div><p class="center sub">${Q.score} of ${Q.qs.length} correct. ${msg}</p>`+
@@ -419,8 +486,8 @@ function cards(title,items,back){
     if(flip){
       const k=c.li+"."+c.xi;
       document.getElementById("sp").onclick=()=>speak(c.p);
-      document.getElementById("ok").onclick=()=>{deck.shift();known++;delete S.weak[k];save();flip=false;show()};
-      document.getElementById("ag").onclick=()=>{deck.push(deck.shift());again++;S.weak[k]=1;save();flip=false;show()};
+      document.getElementById("ok").onclick=()=>{deck.shift();known++;delete S.weak[k];rec(k,true);flip=false;show()};
+      document.getElementById("ag").onclick=()=>{deck.push(deck.shift());again++;S.weak[k]=1;rec(k,false);flip=false;show()};
     }
   }
   show();scrollTo(0,0);
