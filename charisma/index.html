@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unlock Your Charisma – Expression Quiz</title>
+<meta name="description" content="15 charisma lessons, each with key expressions to learn and a quiz to practise them.">
+<style>
+:root{--bg:#f6f5fb;--card:#fff;--ink:#1d1b2e;--mute:#6b6880;--line:#e4e1f0;--acc:#6d5ef0;--acc2:#a78bfa;--ok:#15935a;--okbg:#e3f6ec;--bad:#d03a4a;--badbg:#fde8ea;--hl:#fff1b8}
+@media (prefers-color-scheme:dark){:root{--bg:#0f0e17;--card:#1a1826;--ink:#f1effa;--mute:#9a97b0;--line:#2b2840;--acc:#8b7dff;--acc2:#b9a7ff;--ok:#4cd391;--okbg:#12332a;--bad:#ff7a87;--badbg:#3a1a21;--hl:#4a3f10}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+#app{max-width:640px;margin:0 auto;padding:16px 16px 64px}
+h1{font-size:28px;line-height:1.15;margin:8px 0 4px}
+h2{font-size:22px;margin:4px 0 8px}
+.sub{color:var(--mute);margin:0 0 16px}
+button{font:inherit;color:inherit;cursor:pointer}
+.btn{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border:0;border-radius:999px;padding:12px 22px;font-weight:600}
+.btn.ghost{background:transparent;color:var(--acc);border:1.5px solid var(--acc)}
+.btn:disabled{opacity:.4;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin:10px 0}
+.lesson{display:flex;gap:14px;align-items:center;width:100%;text-align:left}
+.lesson .n{flex:none;width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;display:grid;place-items:center;font-weight:700}
+.lesson .t{flex:1;font-weight:600}
+.lesson .t small{display:block;color:var(--mute);font-weight:400}
+.badge{font-size:13px;font-weight:600;color:var(--ok)}
+.bar{height:6px;border-radius:9px;background:var(--line);overflow:hidden;margin:6px 0 18px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .3s}
+.back{background:none;border:0;color:var(--acc);padding:4px 0;font-weight:600}
+.tip{border-left:4px solid var(--acc);padding:8px 12px;background:var(--card);border-radius:0 12px 12px 0;margin:12px 0}
+.x .p{font-size:19px;font-weight:700;display:flex;justify-content:space-between;gap:8px}
+.x .m{color:var(--mute);margin:2px 0 6px}
+.x .e{font-style:italic}
+mark{background:var(--hl);color:inherit;border-radius:4px;padding:0 3px}
+.say{background:none;border:0;font-size:18px;padding:0 4px}
+.cover .m,.cover .e{filter:blur(7px);transition:filter .2s;user-select:none}
+.cover .x.show .m,.cover .x.show .e{filter:none}
+.q{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);margin:0}
+.big{font-size:20px;font-weight:600;margin:6px 0 16px}
+.opt{display:block;width:100%;text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:13px 15px;margin:8px 0}
+.opt:hover:not(:disabled){border-color:var(--acc)}
+.opt.ok{background:var(--okbg);border-color:var(--ok)}
+.opt.bad{background:var(--badbg);border-color:var(--bad)}
+.fb{margin:14px 0;padding:12px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line)}
+.score{font-size:56px;font-weight:800;text-align:center;margin:12px 0 0;color:var(--acc)}
+.center{text-align:center}
+.miss{border-left:4px solid var(--bad)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* Lesson data. x = [expression, when to use it, example sentence (must contain the expression)]
+   pr = [stronger version, weaker version, why] */
+const L=[
+{t:"First impression hacks",min:15,tip:"People judge you in seconds. Lead with warmth, show real interest, and ask an open question.",
+x:[["It's great to finally meet you","Greet someone warmly when you meet them for the first time","It's great to finally meet you. I've heard so much about your work."],
+["I've been looking forward to this","Show enthusiasm about a meeting or event","Thanks for having me. I've been looking forward to this."],
+["What brings you here today?","Start a conversation with an open question","Hi, I'm Dana. What brings you here today?"],
+["Pleasure to meet you","Give a polite, professional greeting","Pleasure to meet you, Mr. Alvarez."],
+["I'd love to hear more about","Show genuine curiosity about the other person","I'd love to hear more about how you started the company."]],
+pr:[["It's great to finally meet you.","Uh, hi. So... you're the new person?","Warmth and a clear greeting make a better first impression."],["What brings you here today?","Do you like this event?","Open questions invite a real conversation; yes/no questions stall it."]]},
+{t:"Build Trust with Your Voice",min:11,tip:"Slow down, lower your pitch slightly, and be specific. A steady voice signals reliability.",
+x:[["To be honest with you","Introduce a candid, sincere statement","To be honest with you, I'm not sure that timeline is realistic."],
+["Here's what I can commit to","Make a promise you can actually keep","Here's what I can commit to: a first draft by Friday."],
+["I understand where you're coming from","Show empathy before you respond","I understand where you're coming from, and I'd like to suggest another option."],
+["Let me be clear","Remove any doubt about an important point","Let me be clear: we will not miss the deadline."],
+["You have my word","Give a firm personal assurance","You have my word that the client's data stays private."]],
+pr:[["Here's what I can commit to: a draft by Friday.","I'll try to get it to you maybe by Friday?","Specific commitments build trust; vague ones erode it."],["Let me be clear.","I guess what I'm trying to say is, kind of...","Direct framing sounds credible."]]},
+{t:"Confidence Wins",min:10,tip:"Cut hedge words like 'just', 'sort of', and 'I guess'. State your view, then support it.",
+x:[["I'm confident that","State a belief with conviction","I'm confident that this approach will cut costs by 20%."],
+["I recommend","Offer a clear, decisive suggestion","I recommend we start with a small pilot."],
+["Here's my take","Present your opinion directly","Here's my take: we should launch in March."],
+["The data clearly shows","Back up a claim with evidence","The data clearly shows that customers prefer option B."],
+["I'm happy to take the lead on","Volunteer for responsibility","I'm happy to take the lead on the client presentation."]],
+pr:[["I recommend we start with a pilot.","I just sort of think maybe we could try a pilot?","Remove hedges to sound decisive."],["I'm happy to take the lead on this.","I'm probably not the best person, but I could try.","Self-doubt undermines the message before you begin."]]},
+{t:"Speak Up in Any Room",min:10,tip:"Do not wait for a perfect gap. Enter with a short phrase, make one point, and stop.",
+x:[["If I may add something","Politely enter a discussion with a contribution","If I may add something, our competitors already offer this."],
+["Can I jump in here?","Ask permission to join a fast conversation","Can I jump in here? I have data on that."],
+["Building on what Sam said","Connect your point to someone else's idea","Building on what Sam said, we could test it with existing users."],
+["I'd like to offer a different perspective","Introduce a disagreement respectfully","I'd like to offer a different perspective on the budget."],
+["I have a quick point to make","Claim a short speaking slot","I have a quick point to make about the schedule."]],
+pr:[["Building on Sam's idea, I'd add one point.","Sorry, this is probably silly, but...","Skip the apology; own your contribution."],["If I may add something, here's a fact.","Never mind, it's not important.","Withdrawing your point teaches the room to ignore you."]]},
+{t:"Storytelling Secrets",min:13,tip:"A story needs a setup, a tension, and a turning point. Keep it short and end with the lesson.",
+x:[["Let me tell you about a time when","Open a personal story","Let me tell you about a time when I almost lost our biggest client."],
+["Picture this","Invite listeners to imagine the scene","Picture this: it's 6 a.m. and the server is down."],
+["Here's where it gets interesting","Build suspense before the key moment","Here's where it gets interesting: the client called us."],
+["And that's when I realized","Introduce the insight of the story","And that's when I realized that listening was my real job."],
+["Long story short","Skip to the end when time is limited","Long story short, we shipped a day early."]],
+pr:[["Picture this: it's 6 a.m. and the server is down.","So, there was this time at work, and stuff happened.","Specific images pull listeners in."],["And that's when I realized...","Anyway, the end.","A story needs a point; name the insight."]]},
+{t:"Body language",min:15,tip:"Align your body with your words: open posture, steady eye contact, and calm movements.",
+x:[["make eye contact","Look at someone to show attention and sincerity","Make eye contact with each person as you speak."],
+["a firm handshake","A confident, professional greeting gesture","He greeted us with a firm handshake and a smile."],
+["lean in","Move slightly forward to show you are engaged","When someone speaks, lean in slightly to show you're engaged."],
+["open posture","Relaxed stance with uncrossed arms, signalling openness","Uncross your arms and keep an open posture."],
+["mirror their body language","Subtly copy someone's gestures to build rapport","Try to mirror their body language without being obvious."]],
+pr:[["Keep an open posture.","Cross your arms and look at your phone.","Closed gestures signal disinterest or defensiveness."],["Make eye contact.","Stare at the floor while speaking.","Eye contact signals confidence and honesty."]]},
+{t:"Read People Like a Pro",min:15,tip:"Look for clusters of signals, not a single gesture. Compare against the person's normal behaviour.",
+x:[["read between the lines","Understand what is meant but not said","She said 'fine', but read between the lines: she's upset."],
+["pick up on","Notice subtle cues","Try to pick up on small cues such as tone and pace."],
+["a tell-tale sign","A clear signal that reveals a feeling","Fidgeting is a tell-tale sign of nervousness."],
+["gauge their reaction","Judge how someone is responding","Pause and gauge their reaction before moving on."],
+["read the room","Sense the mood of a group","Before you joke, read the room."]],
+pr:[["Let me read the room before I joke.","Everyone's silent, but I'll tell my joke anyway.","Reading the mood prevents mistakes."],["I'll gauge their reaction first.","I assume they agree with me.","Check responses instead of assuming."]]},
+{t:"Give Tough Feedback Fast",min:17,tip:"Be specific, describe the impact, and offer help. Feedback is about behaviour, not character.",
+x:[["Can I share some feedback?","Ask permission before giving criticism","Can I share some feedback? I think it will help the launch."],
+["One thing that would make it even stronger","Frame an improvement positively","One thing that would make it even stronger is a clearer summary."],
+["I noticed that","Describe an observation, not a judgement","I noticed that the report was late twice this month."],
+["The impact was","Explain the consequence of a behaviour","The impact was that the client lost confidence."],
+["How can I support you","Offer help after giving feedback","How can I support you in fixing this?"]],
+pr:[["I noticed the report was late twice.","You are always so careless.","Describe behaviour, not character."],["One thing that would make it even stronger is a summary.","This is bad. Redo it.","Constructive framing keeps people open to change."]]},
+{t:"Handle Difficult People Smartly",min:13,tip:"Stay calm, name the emotion, then steer toward the problem rather than the person.",
+x:[["I hear your frustration","Acknowledge someone's emotion","I hear your frustration, and I want to fix this."],
+["Help me understand","Ask for their reasoning without judging","Help me understand what's behind your concern."],
+["Let's take a step back","Pause and look at the bigger picture","Let's take a step back and look at the goal."],
+["Let's focus on solving this together","Shift from blame to teamwork","Let's focus on solving this together rather than assigning blame."],
+["let's agree to disagree","Accept that you will not convince each other","We see this differently, so let's agree to disagree and move on."]],
+pr:[["I hear your frustration. Let's solve this.","Calm down, you're overreacting.","Telling someone to calm down escalates the situation."],["Help me understand your concern.","That makes no sense.","Curiosity de-escalates; dismissal inflames."]]},
+{t:"Say \"No\" and be likable",min:10,tip:"Appreciate the request, give a short honest reason, and offer an alternative if you can.",
+x:[["I'd love to, but","Soften a refusal with appreciation","I'd love to, but I'm at capacity this week."],
+["Thanks for thinking of me","Show gratitude for being asked","Thanks for thinking of me, but I'll have to pass."],
+["I'll have to pass","Politely decline","Sounds great, but I'll have to pass this time."],
+["I can't commit to that right now","Decline without closing the door","I can't commit to that right now, but ask me next quarter."],
+["What I can do is","Offer an alternative after refusing","I can't take the whole project. What I can do is review the draft."]],
+pr:[["Thanks for thinking of me, but I'll have to pass.","No. I'm too busy for that.","Gratitude keeps the relationship warm."],["What I can do is review the draft.","I can't. Ask someone else.","An alternative shows you still want to help."]]},
+{t:"Interrupt Smoothly",min:10,tip:"Interrupt only for value. Signal it, make it brief, and hand the floor back.",
+x:[["Sorry to interrupt, but","Politely cut in for something important","Sorry to interrupt, but we need to cover the budget."],
+["Before we move on","Raise a point before the topic changes","Before we move on, can I raise one question?"],
+["Just to jump in for a second","Ask for a brief moment to speak","Just to jump in for a second, the deadline has moved."],
+["Let me stop you there","Firmly but politely halt someone who is going off track","Let me stop you there; I want to make sure we agree on the facts."],
+["Quick point on that","Add a short comment to the current topic","Quick point on that: the numbers have changed."]],
+pr:[["Before we move on, may I add something?","Wait, wait, wait! You're wrong!","Polite signals keep the group on your side."],["Sorry to interrupt, but this is urgent.","*talks over them continuously*","Interruptions should be brief and justified."]]},
+{t:"Defuse Any Conflict",min:15,tip:"Lower your volume and pace. Find the shared goal, then look for a fair solution.",
+x:[["Let's take a breather","Suggest a pause when emotions rise","Let's take a breather and come back in ten minutes."],
+["I can see why you feel that way","Validate feelings without agreeing to everything","I can see why you feel that way. Let's look at the facts."],
+["We're on the same side","Remind them of the shared goal","We're on the same side here; we both want this to work."],
+["Let's find common ground","Look for points you both accept","Let's find common ground and build from there."],
+["What would a fair solution look like?","Invite them to co-create a resolution","What would a fair solution look like? I'm open to ideas."]],
+pr:[["Let's take a breather.","You always do this!","Absolute accusations ('always') fuel conflict."],["We're on the same side here.","It's you against me.","Reframing as a team removes the sides."]]},
+{t:"Listen Like a Leader",min:0,tip:"Listen to understand, not to reply. Paraphrase what you hear and ask follow-up questions.",
+x:[["What I'm hearing is","Paraphrase to confirm understanding","What I'm hearing is that the deadline feels unrealistic."],
+["Tell me more about that","Encourage someone to elaborate","Tell me more about that. What happened next?"],
+["If I understand correctly","Check your understanding politely","If I understand correctly, you need two more weeks."],
+["Please, go on","Invite the speaker to continue","Please, go on. I want to hear the whole story."],
+["What matters most to you here?","Discover priorities","What matters most to you here? Speed or quality?"]],
+pr:[["What I'm hearing is that the deadline is tight.","Yeah, yeah, I know. Anyway, my idea is...","Paraphrasing proves you listened."],["Tell me more about that.","Oh, that reminds me of my story.","Leaders keep the focus on the speaker."]]},
+{t:"Small Talk Magic",min:12,tip:"Small talk is a bridge. Ask, listen for a hook, and follow it with a second question.",
+x:[["How's your week going?","Easy opener with colleagues","Hi Sam, how's your week going?"],
+["How did you get into that?","Show interest in someone's work or hobby","You run marathons? How did you get into that?"],
+["Speaking of which","Smoothly link to a related topic","Speaking of which, have you been anywhere lately?"],
+["Small world!","React to a surprising coincidence","You also know Priya? Small world!"],
+["It was great chatting with you","End a conversation pleasantly","It was great chatting with you. Let's stay in touch."]],
+pr:[["How did you get into that?","Good weather, right? ...OK, bye.","Follow-up questions keep small talk alive."],["It was great chatting with you.","Okay, I have to go.","A warm closing leaves a lasting impression."]]},
+{t:"The Power of a Perfect Pause",min:12,tip:"Silence feels longer to you than to listeners. A pause before or after a key point adds weight.",
+x:[["Let that sink in","Pause after an important fact","We grew 300% in one year. Let that sink in."],
+["Take a beat","Briefly stop before answering or continuing","Take a beat before you answer a tough question."],
+["Let me gather my thoughts","Buy time calmly instead of using filler words","Let me gather my thoughts for a moment."],
+["Here's the thing","Slow down and draw attention to a key point","Here's the thing: trust takes years to build."],
+["speak volumes","Communicate a lot without many words","A calm pause can speak volumes."]],
+pr:[["Let me gather my thoughts.","Um, uh, like, you know, um...","A silent pause sounds composed; filler sounds nervous."],["We grew 300%. Let that sink in.","We grew 300%, and then, and then, and then...","Give the number room to land."]]}
+];
+L.forEach((l,i)=>l.n=i+1);
+
+/* ---------- storage ---------- */
+const KEY="charisma-quiz-v1";
+let S={best:{},weak:{}};
+try{S=Object.assign(S,JSON.parse(localStorage.getItem(KEY)||"{}"))}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+
+/* ---------- helpers ---------- */
+const $=document.getElementById("app");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const rx=p=>new RegExp(p.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"i");
+const hl=(e,p)=>esc(e).replace(rx(esc(p)),m=>"<mark>"+m+"</mark>");
+const speak=t=>{try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="en-US";speechSynthesis.speak(u)}catch(e){}};
+const allX=()=>L.flatMap((l,li)=>l.x.map((x,xi)=>({li,xi,p:x[0],m:x[1],e:x[2]})));
+const X=(li,xi)=>({li,xi,p:L[li].x[xi][0],m:L[li].x[xi][1],e:L[li].x[xi][2]});
+
+/* ---------- question generation ---------- */
+function distract(it,key,n){
+  const same=shuf(L[it.li].x.map((_,xi)=>X(it.li,xi)).filter(o=>o.xi!==it.xi));
+  const other=shuf(allX().filter(o=>o.li!==it.li));
+  return [...same.slice(0,2),...other].filter(o=>o[key]!==it[key]).slice(0,n);
+}
+function mk(it,type){
+  const id=it.li+"."+it.xi;
+  const wrong=distract(it,type==="mean"?"m":"p",3);
+  const key=type==="mean"?"m":"p";
+  const opts=shuf([it[key],...wrong.map(w=>w[key])]);
+  const q={id,opts,ans:opts.indexOf(it[key]),
+    exp:`<b>${esc(it.p)}</b> &ndash; ${esc(it.m)}.<br><i>${hl(it.e,it.p)}</i>`,say:it.p};
+  if(type==="say"){q.kind="Which expression fits this goal?";q.text=it.m}
+  if(type==="blank"){q.kind="Complete the sentence";q.text=esc(it.e).replace(rx(esc(it.p)),"_____");q.html=true}
+  if(type==="mean"){q.kind="When would you use this?";q.text="“"+it.p+"”"}
+  return q;
+}
+function pairQ(li,pi){
+  const [g,b,why]=L[li].pr[pi];
+  const opts=shuf([g,b]);
+  return {id:null,kind:"Which sounds more charismatic?",text:"Choose the stronger option",opts,ans:opts.indexOf(g),exp:esc(why)};
+}
+function build(items,pairs,n){
+  const pool=[];
+  items.forEach(it=>["say","blank","mean"].forEach(t=>pool.push(mk(it,t))));
+  pairs.forEach(([li,pi])=>pool.push(pairQ(li,pi)));
+  const count={},out=[];
+  for(const q of shuf(pool)){
+    const c=count[q.id]||0;
+    if(q.id&&c>=2)continue;
+    count[q.id]=c+1;out.push(q);
+    if(out.length>=n)break;
+  }
+  return out;
+}
+
+/* ---------- views ---------- */
+let Q=null;
+function home(){
+  const weakN=Object.keys(S.weak).length;
+  $.innerHTML=`<h1>Unlock Your Charisma</h1>
+  <p class="sub">15 lessons &middot; ${allX().length} expressions to learn. Study a lesson, then test yourself.</p>
+  <div class="row"><button class="btn" id="mix">Mixed quiz</button>
+  <button class="btn ghost" id="weak" ${weakN?"":"disabled"}>Practise weak spots${weakN?" ("+weakN+")":""}</button></div>
+  <div style="height:8px"></div>`+
+  L.map((l,i)=>`<button class="card lesson" data-i="${i}"><span class="n">${l.n}</span>
+    <span class="t">${esc(l.t)}<small>${l.min?l.min+" min &middot; ":""}${l.x.length} expressions</small></span>
+    ${S.best[i]!=null?`<span class="badge">${S.best[i]}%</span>`:""}</button>`).join("");
+  $.querySelectorAll(".lesson").forEach(b=>b.onclick=()=>lesson(+b.dataset.i));
+  document.getElementById("mix").onclick=()=>startQuiz("Mixed quiz",build(allX(),L.flatMap((l,li)=>l.pr.map((_,pi)=>[li,pi])),15),null);
+  document.getElementById("weak").onclick=()=>{
+    const items=Object.keys(S.weak).map(k=>X(...k.split(".").map(Number)));
+    startQuiz("Weak spots",build(items,[],Math.min(10,items.length*2)),null);
+  };
+  scrollTo(0,0);
+}
+function lesson(i){
+  const l=L[i];
+  $.innerHTML=`<button class="back" id="b">&larr; All lessons</button>
+  <p class="q">Lesson ${l.n}${l.min?" &middot; "+l.min+" min":""}</p><h2>${esc(l.t)}</h2>
+  <div class="tip">${esc(l.tip)}</div>
+  <div class="row" style="justify-content:space-between"><b>Expressions to learn</b>
+  <label style="color:var(--mute);font-size:14px"><input type="checkbox" id="cv"> Cover answers</label></div>
+  <div id="xs">`+l.x.map(x=>`<div class="card x"><div class="p"><span>${esc(x[0])}</span><button class="say" title="Listen" data-p="${esc(x[0])}">&#128266;</button></div>
+    <div class="m">${esc(x[1])}</div><div class="e">${hl(x[2],x[0])}</div></div>`).join("")+`</div>
+  <div class="row" style="margin-top:16px"><button class="btn" id="go">Start quiz</button></div>`;
+  document.getElementById("b").onclick=home;
+  const xs=document.getElementById("xs");
+  document.getElementById("cv").onchange=e=>xs.classList.toggle("cover",e.target.checked);
+  xs.querySelectorAll(".x").forEach(c=>c.onclick=()=>c.classList.toggle("show"));
+  xs.querySelectorAll(".say").forEach(b=>b.onclick=e=>{e.stopPropagation();speak(b.dataset.p)});
+  document.getElementById("go").onclick=()=>startQuiz("Lesson "+l.n+": "+l.t,
+    build(l.x.map((_,xi)=>X(i,xi)),l.pr.map((_,pi)=>[i,pi]),10),i);
+  scrollTo(0,0);
+}
+function startQuiz(title,qs,lessonIdx){Q={title,qs,i:0,score:0,miss:[],lesson:lessonIdx,done:false};ask()}
+function ask(){
+  const q=Q.qs[Q.i];
+  $.innerHTML=`<button class="back" id="b">&larr; Quit</button>
+  <div class="bar"><i style="width:${Q.i/Q.qs.length*100}%"></i></div>
+  <p class="q">${esc(q.kind)} &middot; ${Q.i+1}/${Q.qs.length}</p>
+  <div class="big">${q.html?q.text:esc(q.text)}</div>
+  <div id="o">${q.opts.map((o,k)=>`<button class="opt" data-k="${k}">${esc(o)}</button>`).join("")}</div>
+  <div id="fb"></div>`;
+  document.getElementById("b").onclick=()=>Q.lesson!=null?lesson(Q.lesson):home();
+  $.querySelectorAll(".opt").forEach(b=>b.onclick=()=>pick(+b.dataset.k));
+}
+function pick(k){
+  const q=Q.qs[Q.i],right=k===q.ans;
+  const btns=$.querySelectorAll(".opt");
+  btns.forEach((b,j)=>{b.disabled=true;if(j===q.ans)b.classList.add("ok");else if(j===k)b.classList.add("bad")});
+  if(right)Q.score++;else Q.miss.push(q);
+  if(q.id){if(right)delete S.weak[q.id];else S.weak[q.id]=1;save()}
+  const last=Q.i===Q.qs.length-1;
+  document.getElementById("fb").innerHTML=`<div class="fb"><b style="color:var(${right?"--ok":"--bad"})">${right?"Correct!":"Not quite."}</b><br>${q.exp}</div>
+  <div class="row"><button class="btn" id="nx">${last?"See results":"Next"}</button>${q.say?`<button class="btn ghost" id="sp">&#128266; Listen</button>`:""}</div>`;
+  document.getElementById("nx").onclick=()=>{if(last)finish();else{Q.i++;ask()}};
+  const sp=document.getElementById("sp");if(sp)sp.onclick=()=>speak(q.say);
+  document.getElementById("nx").scrollIntoView({block:"nearest"});
+}
+function finish(){
+  const pct=Math.round(Q.score/Q.qs.length*100);
+  if(Q.lesson!=null&&(S.best[Q.lesson]==null||pct>S.best[Q.lesson])){S.best[Q.lesson]=pct;save()}
+  const msg=pct===100?"Perfect! You're ready to use these.":pct>=70?"Great job. Review the misses below.":"Keep practising. Re-read the lesson and try again.";
+  $.innerHTML=`<div class="bar"><i style="width:100%"></i></div><p class="q center">${esc(Q.title)}</p>
+  <div class="score">${pct}%</div><p class="center sub">${Q.score} of ${Q.qs.length} correct. ${msg}</p>`+
+  (Q.miss.length?`<h2>To review</h2>`+Q.miss.map(q=>`<div class="card miss">${q.exp}</div>`).join(""):"")+
+  `<div class="row" style="margin-top:16px"><button class="btn" id="again">Try again</button>
+  <button class="btn ghost" id="hm">All lessons</button></div>`;
+  document.getElementById("hm").onclick=home;
+  document.getElementById("again").onclick=()=>Q.lesson!=null?lesson(Q.lesson):home();
+  scrollTo(0,0);
+}
+home();
+</script>
+</body>
+</html>
