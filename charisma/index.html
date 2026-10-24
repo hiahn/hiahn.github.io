@@ -65,6 +65,10 @@ mark{background:var(--hl);color:inherit;border-radius:4px;padding:0 3px}
 .dl{width:100%;text-align:left;display:block}
 .dl small{color:var(--mute)}
 .legend{font-size:13px;color:var(--mute)}
+.bp{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0}
+.bp div{border:2px solid;border-radius:12px;padding:10px 12px;font-weight:600;position:relative}
+.bp .b{border-color:var(--bad);background:var(--badbg)}.bp .g{border-color:var(--ok);background:var(--okbg)}
+.bp small{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;opacity:.7;margin-bottom:2px}
 .miss{border-left:4px solid var(--bad)}
 .bar.t i{background:var(--bad);transition:none}
 .fc{min-height:240px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;width:100%;padding:24px 18px;margin:12px 0;font-size:20px}
@@ -462,6 +466,36 @@ dr:[{t:"Mock Q&A",s:"Ask yourself three hard questions and answer each in 20 sec
 L.push(...ART);
 L.forEach((l,i)=>l.n=i+1);
 
+/* Beginner vs Pro rewrites: [beginner, pro, why] */
+const BVP=[
+["Sorry to bother you...","I appreciate your time. Quick question...","Thank people instead of apologising for existing."],
+["I'm not sure if this makes sense, but...","Here's how I understand it...","Own your view rather than pre-apologising for it."],
+["I just wanted to check in.","I'm following up on the proposal.","'Just' shrinks you; name the purpose."],
+["Does that make sense?","What questions do you have?","This invites input without implying they might not understand."],
+["I think maybe we could...","I recommend we...","Drop the hedges and make a clear suggestion."],
+["Sorry I'm late.","Thanks for waiting.","Gratitude shifts the tone from guilt to respect."],
+["This might be a stupid question, but...","I'd like to clarify something.","Never label your own question as stupid."],
+["I don't know.","I don't have that yet. I'll get back to you by noon.","Pair honesty with a next step and a time."],
+["I'll try to get it done.","I will get it done by Friday.","Commitment with a date builds trust."],
+["You're wrong.","I see it differently.","Disagree with the idea, not the person."],
+["Whatever works for you.","I'm flexible. My preference is Tuesday.","A preference makes decisions easier for everyone."],
+["Sorry for the long email.","Thanks for reading. Here's the summary.","Lead with value, not an apology."],
+["Can I ask you something?","I have a question about the budget. Do you have a minute?","State the topic and make the ask specific."],
+["It's kind of a big problem.","The issue is delivery time, and it affects every client.","Be specific about what and why it matters."],
+["That's not my job.","That's outside my scope. Here's who can help.","Redirect helpfully instead of refusing."],
+["Calm down.","I can see this is frustrating. Let's work through it.","Acknowledge the emotion before solving."],
+["I need to leave.","I have a hard stop at three, so let's prioritise.","Frame limits as a plan, not an escape."],
+["Thanks, but I'm really busy.","Thanks for thinking of me. I can't take it on right now.","Appreciation plus a clear boundary."],
+["Sorry, what?","Could you repeat that, please?","Polite and precise requests keep respect high."],
+["Let me know if you need anything.","I'll check in Thursday to see how it's going.","Take the initiative with a specific follow-up."],
+["Hopefully we can finish by Friday.","We will finish by Friday.","Hope signals doubt; will signals ownership."],
+["I guess I could do it.","I'm happy to take it on.","Enthusiasm beats reluctance."],
+["Um, can I say something?","I'd like to add something.","Take your turn without asking for permission twice."],
+["I'm bad at presenting.","I'm still developing my presenting skills.","Describe growth, not a fixed flaw."],
+["Good job.","Your analysis of the churn data made the proposal stronger.","Specific praise is more credible."],
+["That's bad.","The data shows a concern with onboarding.","Describe the facts, not just the judgement."],
+["Sorry for asking again.","Let me confirm I have this right.","Frame the question as diligence."]
+];
 /* ---------- storage ---------- */
 const KEY="charisma-quiz-v1";
 let S={best:{},weak:{}};
@@ -554,6 +588,7 @@ function home(){
   <button class="btn ghost" id="weak" ${weakN?"":"disabled"}>Practise weak spots${weakN?" ("+weakN+")":""}</button></div>
   <div class="row" style="margin-top:10px"><button class="btn ghost" id="fcAll">Flashcards</button>
   <button class="btn ghost" id="prog">Progress</button>
+  <button class="btn ghost" id="bvp">Beginner vs Pro</button>
   <button class="btn ghost" id="timed">Timed challenge${S.bestTimed!=null?" (best "+S.bestTimed+"%)":""}</button></div>
   <div style="height:8px"></div>`+
   L.map((l,i)=>(l.h?`<h2 style="margin-top:20px">${esc(l.h)}</h2>`:"")+`<button class="card lesson" data-i="${i}"><span class="n">${l.n}</span>
@@ -565,6 +600,23 @@ function home(){
   document.getElementById("timed").onclick=()=>startQuiz("Timed challenge",build(allX(),pairsAll(),15),null,true);
   document.getElementById("weak").onclick=weakQuiz;
   document.getElementById("prog").onclick=dash;
+  document.getElementById("bvp").onclick=bvpView;
+  scrollTo(0,0);
+}
+function bvpView(){
+  $.innerHTML=`<button class="back" id="b">&larr; All lessons</button>
+  <h2>Beginner vs Pro</h2><p class="sub">Same speaker, different impact. Swap the left phrase for the right one.</p>
+  <div class="row"><button class="btn" id="go">Quiz me</button></div>`+
+  BVP.map((p,i)=>`<div class="card"><div class="bp"><div class="b"><small>Beginner</small>${esc(p[0])}</div>
+    <div class="g"><small>Pro</small>${esc(p[1])}</div></div>
+    <div class="row" style="justify-content:space-between;align-items:flex-start"><span style="color:var(--mute);font-size:14px">${esc(p[2])}</span>
+    <button class="say" title="Listen" data-i="${i}">&#128266;</button></div></div>`).join("");
+  document.getElementById("b").onclick=home;
+  $.querySelectorAll(".say").forEach(b=>b.onclick=()=>speak(BVP[+b.dataset.i][1]));
+  document.getElementById("go").onclick=()=>startQuiz("Beginner vs Pro",shuf(BVP).slice(0,10).map(([bg,pro,why])=>{
+    const opts=shuf([bg,pro]);
+    return{id:null,kind:"Which sounds like a pro?",text:"Pick the stronger phrasing",opts,ans:opts.indexOf(pro),
+      exp:`<b style="color:var(--ok)">Pro:</b> ${esc(pro)}<br><b style="color:var(--bad)">Beginner:</b> ${esc(bg)}<br>${esc(why)}`,say:pro}}),null);
   scrollTo(0,0);
 }
 function weakQuiz(){
