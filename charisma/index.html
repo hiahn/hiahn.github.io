@@ -347,6 +347,119 @@ const MORE2=[
 ["Let me put that another way","Restate a point more clearly","Let me put that another way: we need more time."]]
 ];
 L.forEach((l,i)=>l.x.push(...MORE2[i]));
+L[0].h="Unlock Your Charisma";
+/* Articulation track: original lessons on clear, structured speech. dr = practice drills (t title, s steps, w lines to read aloud) */
+const ART=[
+{h:"Improve Articulation Skills",t:"Clear Diction & Enunciation",min:0,tip:"Clarity comes from crisp consonants and an open mouth. Go slowly first, then build speed.",
+x:[["Let me spell that out","Make a name or term unmistakable","Let me spell that out: A-L-V-A-R-E-Z."],
+["To be precise","Introduce an exact detail","To be precise, the meeting starts at 9:15."],
+["Let me say that more slowly","Slow down for a difficult word or number","Let me say that more slowly: three thousand, two hundred."],
+["Did I pronounce that correctly?","Check a name respectfully","Did I pronounce that correctly? I want to get your name right."],
+["Just so we're clear","Confirm shared understanding","Just so we're clear, the deadline is Friday."],
+["Allow me to be specific","Replace vague words with detail","Allow me to be specific: we need two designers."],
+["Let me repeat the key number","Emphasise critical data","Let me repeat the key number: forty-two percent."],
+["The word I'm looking for is","Find the exact word without fillers","The word I'm looking for is reliable."],
+["Please stop me if I'm unclear","Invite feedback on clarity","Please stop me if I'm unclear at any point."],
+["Let me restate that clearly","Rephrase after confusion","Let me restate that clearly: we deliver on Monday."]],
+pr:[["Let me say that more slowly: 3,200.","*mumbles the number and moves on*","Slowing down on key details prevents errors."],["Did I pronounce your name correctly?","I'll just guess how to say it.","Checking shows respect and avoids repeated mistakes."]],
+dr:[{t:"Warm up your mouth",s:"Do lip trills for 20 seconds, then alternate a wide smile and a rounded 'oo' ten times. Finish by humming gently up and down your range."},
+{t:"Tongue twisters: slow, then fast",s:"Say each line slowly and exaggerate every consonant. Repeat three times, speeding up only while each sound stays distinct. Spend 2 to 3 minutes in total.",w:["She sells seashells by the seashore.","Red leather, yellow leather.","Unique New York.","The lips, the teeth, the tip of the tongue."]}]},
+{t:"Pace & Rhythm",min:0,tip:"Nervous speakers rush. Aim for a comfortable conversational pace and let commas and full stops breathe.",
+x:[["Let me slow down","Reset your pace out loud","Let me slow down; this part matters."],
+["Take it step by step","Pace complex information","Let's take it step by step."],
+["Bear with me for a moment","Ask for patience while you find your thread","Bear with me for a moment while I pull up the figures."],
+["Let me pause there","Stop at a natural break","Let me pause there before the next section."],
+["One thing at a time","Control the rhythm of a busy discussion","One thing at a time: first, the budget."],
+["Let me give you the headline first","Lead with the main point","Let me give you the headline first: we're on track."],
+["I'll keep this brief","Set a time expectation","I'll keep this brief: three updates."],
+["Let's go through this carefully","Signal that detail is coming","Let's go through this carefully, line by line."],
+["Let me know if I'm going too fast","Invite pace feedback","Let me know if I'm going too fast."],
+["Here's the short version","Summarise when time is tight","Here's the short version: yes, with conditions."]],
+pr:[["Let me slow down; this part matters.","So basically the numbers are, like, fine, next slide!","A deliberate pace signals importance."],["Let me know if I'm going too fast.","*keeps rushing and hopes they follow*","Checking in keeps the audience with you."]],
+dr:[{t:"Slash and breathe",s:"Read the lines aloud and take a quiet breath at every slash. A comfortable speaking pace is often put at roughly 130 to 150 words per minute (a rule of thumb, not a rule). Time yourself for one minute.",w:["We started small, / tested early, / and learned fast.","Then we grew, / hired carefully, / and kept listening."]}]},
+{t:"Cut the Filler Words",min:0,tip:"Replace um, like and you know with a silent pause or a clean connecting phrase. Record 60 seconds and count your fillers.",
+x:[["Let me think for a second","Pause instead of saying um","Let me think for a second."],
+["Let me get this right","Slow down for accuracy","Let me get this right before I answer."],
+["Here's how I see it","Start an opinion cleanly","Here's how I see it: we should wait."],
+["The point is","Return to your main idea","The point is, customers want speed."],
+["What I mean is","Clarify without saying 'like'","What I mean is that we need a plan."],
+["There are three things I want to cover","Signpost to avoid rambling","There are three things I want to cover today."],
+["Let me start with","Begin with a clean opener","Let me start with the good news."],
+["Allow me a moment","Politely request time","Allow me a moment to check my notes."],
+["To put it simply","Simplify instead of saying 'you know'","To put it simply, we save money."],
+["That's all I have for now","Close cleanly instead of trailing off","That's all I have for now. Thank you."]],
+pr:[["Let me think for a second.","Um, so, like, you know, basically...","A silent pause beats a filler."],["That's all I have for now. Thank you.","So yeah... that's kind of it, I guess.","A clean ending sounds confident."]],
+dr:[{t:"60-second filler count",s:"Record yourself describing your day for 60 seconds. Play it back and tally every um, like, so and you know. Repeat and try to beat your score."},
+{t:"Swap filler for silence",s:"Say each line and replace every 'um' with a calm two-second pause.",w:["Our results this quarter were... excellent.","The main reason is... trust."]}]},
+{t:"Structure Your Message",min:0,tip:"Use a simple frame such as point, reason, example, point (PREP). Tell people the structure before you begin.",
+x:[["My main point is","State the point first","My main point is that we should start now."],
+["The reason is","Give your reason","The reason is that costs fall by half."],
+["For example","Illustrate with a case","For example, last year we cut costs by 30%."],
+["So, to recap","Close the loop","So, to recap, we start now because costs fall."],
+["I have three points","Preview your structure","I have three points: cost, speed and risk."],
+["Let's start with the problem","Open with the problem","Let's start with the problem."],
+["That leads to","Connect one point to the next","That leads to our second point: speed."],
+["As a result","Show a consequence","As a result, delivery was a week faster."],
+["The bottom line is","Deliver the conclusion","The bottom line is that this saves money."],
+["Moving on to","Transition to the next topic","Moving on to the second point."]],
+pr:[["I have three points: cost, speed and risk.","I have lots of thoughts and it's hard to say where to start.","Previewing structure keeps listeners oriented."],["The bottom line is that we should start.","Anyway, there are many factors and so on.","Land on a clear conclusion."]],
+dr:[{t:"PREP in 30 seconds",s:"Pick any topic and speak for 30 seconds using Point, Reason, Example, Point. Read the model aloud first, then do your own.",w:["Point: I believe in daily practice.","Reason: small habits compound.","Example: ten minutes a day adds up to an hour a week.","Point: so start today."]}]},
+{t:"Vocal Variety & Intonation",min:0,tip:"Let your pitch fall at the end of statements to sound certain. A rising tone makes statements sound like questions.",
+x:[["Let me emphasize","Signal emphasis","Let me emphasize this: safety comes first."],
+["Most importantly","Highlight a priority","Most importantly, we keep the client informed."],
+["Here's what matters","Focus the listener","Here's what matters: delivery on time."],
+["I can't stress this enough","Add strong emphasis","I can't stress this enough: back up your files."],
+["Notice that","Direct attention to a detail","Notice that sales rose after the change."],
+["Think about it","Invite the listener to reflect","Think about it: every email is a first impression."],
+["What if I told you","Spark curiosity","What if I told you that we could halve the time?"],
+["Imagine for a moment","Set a scene with a rising energy","Imagine for a moment that every meeting ended early."],
+["That's the key","Land a point with a falling tone","That's the key: consistency."],
+["This is exactly why","Link cause to effect","This is exactly why we test early."]],
+pr:[["We start on Monday.","We start on Monday?","A falling tone ends a statement with certainty."],["Most importantly, we keep the client informed.","Maybe we could possibly keep the client informed?","Clear emphasis beats hedged phrasing."]],
+dr:[{t:"One sentence, five meanings",s:"Say the sentence five times and stress a different word each time. Notice how the meaning changes.",w:["I never said she took the money."]},
+{t:"Finish low",s:"Say each statement and let your pitch fall on the last word. Avoid the upward lilt.",w:["We start on Monday.","The budget is approved.","I'm confident in this plan."]}]},
+{t:"Breath & Voice Projection",min:0,tip:"Support your voice with steady breath from the diaphragm, not tension in the throat. You get clearer without getting louder.",
+x:[["Can everyone hear me?","Check audibility","Can everyone hear me? I'll speak up if not."],
+["Let me bring this closer","Adjust the microphone","Let me bring this closer so you can all hear."],
+["I'll speak up a little","Raise your volume politely","I'll speak up a little so everyone hears."],
+["Can you hear me okay?","Check audio on a call","Can you hear me okay? The line seems faint."],
+["Let me catch my breath","Reset calmly","Let me catch my breath for a moment."],
+["Thank you for your patience","Appreciate the audience while you fix a problem","Thank you for your patience while I fix the slides."],
+["Could you repeat that, please?","Ask for clarity politely","Could you repeat that, please? I missed the last part."],
+["Let me check my audio","Handle a tech problem calmly","Let me check my audio; I think I'm on mute."],
+["Is this volume comfortable?","Check the room's comfort","Is this volume comfortable? Tell me if it's too loud."],
+["I'll make sure everyone can hear","Show care for the audience","I'll make sure everyone can hear before we begin."]],
+pr:[["Can everyone hear me at the back?","Assume they hear me and keep going quietly.","Checking audibility is professional."],["Let me catch my breath.","*gasps and rushes on*","Resetting your breath keeps your voice steady."]],
+dr:[{t:"4-4-6 breathing",s:"Breathe in through the nose for 4 counts, hold for 4, breathe out slowly for 6. Repeat five times with a hand on your belly."},
+{t:"Count on one breath",s:"Take a deep breath and count out loud on a single exhale. Aim for 10 to 15 counts at an even volume.",w:["One, two, three, four, five, six, seven, eight, nine, ten."]}]},
+{t:"Say It Concisely",min:0,tip:"Lead with the answer, then support it. If you cannot say it in one sentence, you do not have it yet.",
+x:[["In a nutshell","Give the essence","In a nutshell, we need more time."],
+["The short version is","Offer a compact answer","The short version is that it works."],
+["To cut to the chase","Skip the preamble","To cut to the chase, we're behind schedule."],
+["In one sentence","Force a tight summary","In one sentence: we need two more weeks."],
+["The key takeaway is","Name the one thing to remember","The key takeaway is to test early."],
+["What this means for you is","Translate facts into relevance","What this means for you is a faster refund."],
+["Let me get straight to the point","Start directly","Let me get straight to the point: we need help."],
+["I'll skip the details","Respect their time","I'll skip the details unless you want them."],
+["Happy to go deeper","Offer more detail on request","Happy to go deeper if you have questions."],
+["Here's what I need from you","End with a clear ask","Here's what I need from you: a decision by Friday."]],
+pr:[["In one sentence: we need two more weeks.","So there are a lot of things happening, and...","Lead with the answer."],["I'll skip the details unless you want them.","Let me walk through every single step first.","Respecting time is charismatic."]],
+dr:[{t:"One-sentence summary",s:"Choose a project, article or meeting from this week. Summarise it in one sentence of under 20 words, aloud. Then add one supporting reason.",w:["The short version is that we found the problem and fixed it early."]}]},
+{t:"Think on Your Feet (Q&A)",min:0,tip:"Pause, restate, answer briefly, then check. A calm structure beats a perfect answer.",
+x:[["That's a fair question","Acknowledge before answering","That's a fair question. Here's my answer."],
+["If I understand your question","Restate to buy time and confirm","If I understand your question, you're asking about cost."],
+["I don't have that figure in front of me","Admit a gap honestly","I don't have that figure in front of me, but I'll send it today."],
+["Let me answer in two parts","Give structure to a long answer","Let me answer in two parts: cost and time."],
+["Does that answer your question?","Close the loop","Does that answer your question?"],
+["I'd rather give you an accurate answer","Choose accuracy over speed","I'd rather give you an accurate answer than a quick guess."],
+["That's outside my area","Redirect without bluffing","That's outside my area, but I know who to ask."],
+["Can you narrow that down for me?","Clarify a broad question","Can you narrow that down for me? Which market?"],
+["The short answer is yes","Answer first, then explain","The short answer is yes, and here's why."],
+["Let me come back to that","Park a question for later","Let me come back to that after the demo."]],
+pr:[["I don't have that figure in front of me, but I'll send it today.","Um, I think maybe around... I don't know.","Honest commitments beat guesses."],["Does that answer your question?","Okay, next.","Checking closes the loop."]],
+dr:[{t:"Mock Q&A",s:"Ask yourself three hard questions and answer each in 20 seconds using four moves: pause, restate, answer, check.",w:["That's a fair question. If I understand it, you're asking why now. The short answer is timing. Does that answer your question?"]}]}
+];
+L.push(...ART);
 L.forEach((l,i)=>l.n=i+1);
 
 /* ---------- storage ---------- */
@@ -436,14 +549,14 @@ let Q=null;
 function home(){
   const weakN=Object.keys(S.weak).length;
   $.innerHTML=`<h1>Unlock Your Charisma</h1>
-  <p class="sub">15 lessons &middot; ${allX().length} expressions to learn. Study a lesson, then test yourself.</p>
+  <p class="sub">${L.length} lessons &middot; ${allX().length} expressions to learn. Study a lesson, then test yourself.</p>
   <div class="row"><button class="btn" id="mix">Mixed quiz</button>
   <button class="btn ghost" id="weak" ${weakN?"":"disabled"}>Practise weak spots${weakN?" ("+weakN+")":""}</button></div>
   <div class="row" style="margin-top:10px"><button class="btn ghost" id="fcAll">Flashcards</button>
   <button class="btn ghost" id="prog">Progress</button>
   <button class="btn ghost" id="timed">Timed challenge${S.bestTimed!=null?" (best "+S.bestTimed+"%)":""}</button></div>
   <div style="height:8px"></div>`+
-  L.map((l,i)=>`<button class="card lesson" data-i="${i}"><span class="n">${l.n}</span>
+  L.map((l,i)=>(l.h?`<h2 style="margin-top:20px">${esc(l.h)}</h2>`:"")+`<button class="card lesson" data-i="${i}"><span class="n">${l.n}</span>
     <span class="t">${esc(l.t)}<small>${l.min?l.min+" min &middot; ":""}${l.x.length} expressions</small></span>
     ${S.best[i]!=null?`<span class="badge">${S.best[i]}%</span>`:""}</button>`).join("");
   $.querySelectorAll(".lesson").forEach(b=>b.onclick=()=>lesson(+b.dataset.i));
@@ -510,12 +623,14 @@ function lesson(i){
   <label style="color:var(--mute);font-size:14px"><input type="checkbox" id="cv"> Cover answers</label></div>
   <div id="xs">`+l.x.map(x=>`<div class="card x"><div class="p"><span>${esc(x[0])}</span><button class="say" title="Listen" data-p="${esc(x[0])}">&#128266;</button></div>
     <div class="m">${esc(x[1])}</div><div class="e">${hl(x[2],x[0])}</div></div>`).join("")+`</div>
+  ${l.dr?`<h2 style="margin-top:22px">Practice drills</h2>`+l.dr.map(d=>`<div class="card"><b>${esc(d.t)}</b><p style="margin:4px 0 8px;color:var(--mute)">${esc(d.s)}</p>`+
+    (d.w||[]).map(w=>`<div class="x"><div class="p" style="font-size:16px;font-weight:600"><span>${esc(w)}</span><button class="say" title="Listen" data-p="${esc(w)}">&#128266;</button></div></div>`).join("")+`</div>`).join(""):""}
   <div class="row" style="margin-top:16px"><button class="btn" id="go">Start quiz</button><button class="btn ghost" id="gt">Timed quiz</button><button class="btn ghost" id="gf">Flashcards</button></div>`;
   document.getElementById("b").onclick=home;
   const xs=document.getElementById("xs");
   document.getElementById("cv").onchange=e=>xs.classList.toggle("cover",e.target.checked);
   xs.querySelectorAll(".x").forEach(c=>c.onclick=()=>c.classList.toggle("show"));
-  xs.querySelectorAll(".say").forEach(b=>b.onclick=e=>{e.stopPropagation();speak(b.dataset.p)});
+  $.querySelectorAll(".say").forEach(b=>b.onclick=e=>{e.stopPropagation();speak(b.dataset.p)});
   const lq=timed=>startQuiz("Lesson "+l.n+": "+l.t+(timed?" (timed)":""),
     build(l.x.map((_,xi)=>X(i,xi)),l.pr.map((_,pi)=>[i,pi]),10),i,timed);
   document.getElementById("go").onclick=()=>lq(false);
