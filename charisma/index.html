@@ -466,35 +466,102 @@ dr:[{t:"Mock Q&A",s:"Ask yourself three hard questions and answer each in 20 sec
 L.push(...ART);
 L.forEach((l,i)=>l.n=i+1);
 
-/* Beginner vs Pro rewrites: [beginner, pro, why] */
+/* Beginner vs Pro rewrites: [beginner, pro, why, lesson index] */
 const BVP=[
-["Sorry to bother you...","I appreciate your time. Quick question...","Thank people instead of apologising for existing."],
-["I'm not sure if this makes sense, but...","Here's how I understand it...","Own your view rather than pre-apologising for it."],
-["I just wanted to check in.","I'm following up on the proposal.","'Just' shrinks you; name the purpose."],
-["Does that make sense?","What questions do you have?","This invites input without implying they might not understand."],
-["I think maybe we could...","I recommend we...","Drop the hedges and make a clear suggestion."],
-["Sorry I'm late.","Thanks for waiting.","Gratitude shifts the tone from guilt to respect."],
-["This might be a stupid question, but...","I'd like to clarify something.","Never label your own question as stupid."],
-["I don't know.","I don't have that yet. I'll get back to you by noon.","Pair honesty with a next step and a time."],
-["I'll try to get it done.","I will get it done by Friday.","Commitment with a date builds trust."],
-["You're wrong.","I see it differently.","Disagree with the idea, not the person."],
-["Whatever works for you.","I'm flexible. My preference is Tuesday.","A preference makes decisions easier for everyone."],
-["Sorry for the long email.","Thanks for reading. Here's the summary.","Lead with value, not an apology."],
-["Can I ask you something?","I have a question about the budget. Do you have a minute?","State the topic and make the ask specific."],
-["It's kind of a big problem.","The issue is delivery time, and it affects every client.","Be specific about what and why it matters."],
-["That's not my job.","That's outside my scope. Here's who can help.","Redirect helpfully instead of refusing."],
-["Calm down.","I can see this is frustrating. Let's work through it.","Acknowledge the emotion before solving."],
-["I need to leave.","I have a hard stop at three, so let's prioritise.","Frame limits as a plan, not an escape."],
-["Thanks, but I'm really busy.","Thanks for thinking of me. I can't take it on right now.","Appreciation plus a clear boundary."],
-["Sorry, what?","Could you repeat that, please?","Polite and precise requests keep respect high."],
-["Let me know if you need anything.","I'll check in Thursday to see how it's going.","Take the initiative with a specific follow-up."],
-["Hopefully we can finish by Friday.","We will finish by Friday.","Hope signals doubt; will signals ownership."],
-["I guess I could do it.","I'm happy to take it on.","Enthusiasm beats reluctance."],
-["Um, can I say something?","I'd like to add something.","Take your turn without asking for permission twice."],
-["I'm bad at presenting.","I'm still developing my presenting skills.","Describe growth, not a fixed flaw."],
-["Good job.","Your analysis of the churn data made the proposal stronger.","Specific praise is more credible."],
-["That's bad.","The data shows a concern with onboarding.","Describe the facts, not just the judgement."],
-["Sorry for asking again.","Let me confirm I have this right.","Frame the question as diligence."]
+["Sorry to bother you...","I appreciate your time. Quick question...","Thank people instead of apologising for existing.",0],
+["I'm not sure if this makes sense, but...","Here's how I understand it...","Own your view rather than pre-apologising for it.",3],
+["I just wanted to check in.","I'm following up on the proposal.","'Just' shrinks you; name the purpose.",2],
+["Does that make sense?","What questions do you have?","This invites input without implying they might not understand.",12],
+["I think maybe we could...","I recommend we...","Drop the hedges and make a clear suggestion.",2],
+["Sorry I'm late.","Thanks for waiting.","Gratitude shifts the tone from guilt to respect.",0],
+["This might be a stupid question, but...","I'd like to clarify something.","Never label your own question as stupid.",3],
+["I don't know.","I don't have that yet. I'll get back to you by noon.","Pair honesty with a next step and a time.",1],
+["I'll try to get it done.","I will get it done by Friday.","Commitment with a date builds trust.",1],
+["You're wrong.","I see it differently.","Disagree with the idea, not the person.",8],
+["Whatever works for you.","I'm flexible. My preference is Tuesday.","A preference makes decisions easier for everyone.",2],
+["Sorry for the long email.","Thanks for reading. Here's the summary.","Lead with value, not an apology.",21],
+["Can I ask you something?","I have a question about the budget. Do you have a minute?","State the topic and make the ask specific.",3],
+["It's kind of a big problem.","The issue is delivery time, and it affects every client.","Be specific about what and why it matters.",15],
+["That's not my job.","That's outside my scope. Here's who can help.","Redirect helpfully instead of refusing.",9],
+["Calm down.","I can see this is frustrating. Let's work through it.","Acknowledge the emotion before solving.",11],
+["I need to leave.","I have a hard stop at three, so let's prioritise.","Frame limits as a plan, not an escape.",9],
+["Thanks, but I'm really busy.","Thanks for thinking of me. I can't take it on right now.","Appreciation plus a clear boundary.",9],
+["Sorry, what?","Could you repeat that, please?","Polite and precise requests keep respect high.",15],
+["Let me know if you need anything.","I'll check in Thursday to see how it's going.","Take the initiative with a specific follow-up.",1],
+["Hopefully we can finish by Friday.","We will finish by Friday.","Hope signals doubt; will signals ownership.",2],
+["I guess I could do it.","I'm happy to take it on.","Enthusiasm beats reluctance.",2],
+["Um, can I say something?","I'd like to add something.","Take your turn without asking for permission twice.",10],
+["I'm bad at presenting.","I'm still developing my presenting skills.","Describe growth, not a fixed flaw.",2],
+["Good job.","Your analysis of the churn data made the proposal stronger.","Specific praise is more credible.",7],
+["That's bad.","The data shows a concern with onboarding.","Describe the facts, not just the judgement.",7],
+["Sorry for asking again.","Let me confirm I have this right.","Frame the question as diligence.",22],
+["Hi, I'm Alex.", "Hi, I'm Alex. It's great to meet you. What brings you here today?", "Add warmth and an open question to your name.", 0],
+["Great event, huh?", "What are you hoping to get out of today?", "Open questions beat yes/no small talk.", 0],
+["Trust me.", "Here's what I can commit to, and here's how you can check it.", "Verifiable commitments build more trust than a plea.", 1],
+["Never mind, it's not important.", "I'd like to add one point before we move on.", "Withdrawing your point teaches the room to ignore you.", 3],
+["So, um, something happened once.", "Picture this: it's 6 a.m. and the server is down.", "Drop the audience into a scene.", 4],
+["Anyway, it ended okay.", "And that's when I realized we were solving the wrong problem.", "A story needs an insight, not just an ending.", 4],
+["It's a long story.", "Long story short, we shipped a day early.", "Summarise instead of apologising for length.", 4],
+["Then stuff happened.", "Here's where it gets interesting: the client called us.", "Build suspense before the key moment.", 4],
+["*looks at phone* Yeah, go on.", "I'm all yours. Go ahead.", "Full attention is a message in itself.", 5],
+["Sorry, I'm so nervous.", "I'm excited to be here.", "Reframe nerves as energy.", 5],
+["*mumbles* hello.", "Good morning, everyone. It's good to see you.", "Say it clearly, with eye contact and a smile.", 5],
+["Sorry, can I squeeze in?", "Mind if I join you?", "Move with ease, not apology.", 5],
+["You're obviously lying.", "Something doesn't add up for me. Can you walk me through it?", "Curiosity keeps people talking; accusation shuts them down.", 6],
+["Why are you being so quiet?", "I'd love to hear your thoughts on this.", "Invite instead of interrogate.", 6],
+["I know what you're thinking.", "Help me understand what you're thinking.", "Never assume; check.", 6],
+["Are you bored?", "Let me check this is useful for you. What would you like to focus on?", "Gauge their reaction without blaming them.", 6],
+["You messed up.", "I noticed the report had three errors. Here's the impact.", "Describe behaviour and impact, not character.", 7],
+["Your presentation was okay, I guess.", "What went well was your clear structure. One thing that would make it stronger is a summary slide.", "Be specific and constructive.", 7],
+["That's not my fault.", "Here's what I can do to fix this.", "Move from blame to solutions.", 8],
+["Why are you so difficult?", "Help me understand what's behind your concern.", "Curiosity de-escalates.", 8],
+["Fine, you win.", "Let's agree to disagree and move on.", "Close the topic with respect, not resentment.", 8],
+["I can't, sorry, I really can't, I'm so sorry.", "Thanks for thinking of me. I'll have to pass.", "Appreciation plus one clean sentence.", 9],
+["Hey, wait, wait, wait!", "Sorry to interrupt, but I want to make sure we cover the budget.", "Signal, give a reason, keep it brief.", 10],
+["*talks over everyone*", "Can I jump in here? I have data on that.", "Ask for the floor.", 10],
+["Sorry, you go first, it's fine.", "I'd like to add something before we move on.", "Claim your turn politely.", 10],
+["You always do this!", "When that happens, I feel frustrated. Let's find a fix.", "Absolute words fuel conflict.", 11],
+["This is ridiculous.", "Let's take a breather and come back to it.", "Pause before the argument escalates.", 11],
+["Whatever.", "I can see why you feel that way. What would a fair solution look like?", "Validate and invite a fair outcome.", 11],
+["Yeah, yeah, I know.", "What I'm hearing is that the deadline feels unrealistic.", "Paraphrasing proves you listened.", 12],
+["That happened to me too!", "Tell me more about that.", "Keep the focus on the speaker.", 12],
+["You should just...", "Do you want ideas, a decision, or just a listener?", "Ask before advising.", 12],
+["So... what do you do?", "What do you enjoy most about what you do?", "A richer question gets a richer answer.", 13],
+["I'm fine.", "Busy but good, thanks. And you?", "Add a little personality to the stock reply.", 13],
+["Okay, I have to go.", "It was great chatting with you. Let's catch up soon.", "A warm exit is remembered.", 13],
+["Um, nice weather.", "Any plans for the weekend?", "Invite a story instead of a comment.", 13],
+["Um, uh, let me think...", "Let me gather my thoughts.", "Name the pause instead of filling it.", 14],
+["So, um, basically...", "Here's the thing:", "Signal the key point and slow down.", 14],
+["Is that clear? Okay? Right?", "Let that sink in.", "Trust the silence to do the work.", 14],
+["*rushes through the number*", "Forty percent. Think about that for a second.", "Give key numbers room to land.", 14],
+["It's like thirty-something.", "To be precise, it's thirty-two percent.", "Be exact when accuracy matters.", 15],
+["Whatever I said.", "Let me restate that clearly.", "Own clarity instead of dismissing it.", 15],
+["So, yeah, quickly, here's everything.", "Let me give you the headline first.", "Lead with the headline.", 16],
+["Sorry, I'm talking too fast.", "Let me slow down; this part matters.", "Correct your pace without apologising.", 16],
+["I'll rush through this.", "I'll keep this brief: three updates.", "Set a purposeful, bounded scope.", 16],
+["Hold on, I lost my place.", "Bear with me for a moment while I find my thread.", "Calm language keeps authority.", 16],
+["So, like, you know, it's basically...", "What I mean is that we need a plan.", "Replace fillers with a clean connector.", 17],
+["And yeah. That's it, I guess.", "That's all I have for now. Thank you.", "End cleanly.", 17],
+["Um...", "Let me think for a second.", "A planned pause beats a filler.", 17],
+["So, uh, where was I...", "The point is, customers want speed.", "Return to your main idea.", 17],
+["I have a bunch of thoughts.", "I have three points: cost, speed and risk.", "Preview your structure.", 18],
+["So, basically, there are many things.", "My main point is that we should start now.", "State the point first.", 18],
+["Anyway, that's it.", "So, to recap, we start now because costs fall.", "Close the loop.", 18],
+["And then, also, another thing.", "That leads to our second point: speed.", "Connect ideas logically.", 18],
+["It's kind of important?", "Most importantly, we keep the client informed.", "Rank priorities out loud.", 19],
+["Maybe you should back up files?", "I can't stress this enough: back up your files.", "Make emphasis unmistakable.", 19],
+["So this is the data.", "Notice that sales rose after the change.", "Direct attention to the insight.", 19],
+["It works, I think?", "It works.", "End statements with a falling tone.", 19],
+["Can you guys hear me? Hello?", "Can everyone hear me at the back?", "Check audibility calmly.", 20],
+["Ugh, my mic is broken.", "Let me check my audio; I think I'm on mute.", "Stay calm with tech issues.", 20],
+["Sorry, give me a sec, I'm so nervous.", "Let me catch my breath for a moment.", "Reset your breath without apologising.", 20],
+["Wait, what did you say?", "Could you repeat that, please?", "Polite clarity wins.", 20],
+["Well, it's complicated, so there's a lot to explain.", "The short version is that it works.", "Lead with the answer.", 21],
+["I have a long story first.", "Let me get straight to the point.", "Respect their time.", 21],
+["I guess I could explain more?", "Happy to go deeper if you have questions.", "Offer detail on request.", 21],
+["Uh... I have no idea.", "That's outside my area, but I know who to ask.", "Redirect, don't bluff.", 22],
+["Wait, what do you mean?", "Can you narrow that down for me?", "Clarify a broad question.", 22],
+["Um, probably yes, I think?", "The short answer is yes, and here's why.", "Answer first, then explain.", 22]
 ];
 /* ---------- storage ---------- */
 const KEY="charisma-quiz-v1";
@@ -603,20 +670,30 @@ function home(){
   document.getElementById("bvp").onclick=bvpView;
   scrollTo(0,0);
 }
-function bvpView(){
-  $.innerHTML=`<button class="back" id="b">&larr; All lessons</button>
-  <h2>Beginner vs Pro</h2><p class="sub">Same speaker, different impact. Swap the left phrase for the right one.</p>
-  <div class="row"><button class="btn" id="go">Quiz me</button></div>`+
-  BVP.map((p,i)=>`<div class="card"><div class="bp"><div class="b"><small>Beginner</small>${esc(p[0])}</div>
-    <div class="g"><small>Pro</small>${esc(p[1])}</div></div>
-    <div class="row" style="justify-content:space-between;align-items:flex-start"><span style="color:var(--mute);font-size:14px">${esc(p[2])}</span>
-    <button class="say" title="Listen" data-i="${i}">&#128266;</button></div></div>`).join("");
-  document.getElementById("b").onclick=home;
-  $.querySelectorAll(".say").forEach(b=>b.onclick=()=>speak(BVP[+b.dataset.i][1]));
-  document.getElementById("go").onclick=()=>startQuiz("Beginner vs Pro",shuf(BVP).slice(0,10).map(([bg,pro,why])=>{
+function bvpQuiz(items,title){
+  startQuiz(title,shuf(items).slice(0,10).map(([bg,pro,why])=>{
     const opts=shuf([bg,pro]);
     return{id:null,kind:"Which sounds like a pro?",text:"Pick the stronger phrasing",opts,ans:opts.indexOf(pro),
-      exp:`<b style="color:var(--ok)">Pro:</b> ${esc(pro)}<br><b style="color:var(--bad)">Beginner:</b> ${esc(bg)}<br>${esc(why)}`,say:pro}}),null);
+      exp:`<b style="color:var(--ok)">Pro:</b> ${esc(pro)}<br><b style="color:var(--bad)">Beginner:</b> ${esc(bg)}<br>${esc(why)}`,say:pro}}),null,false,bvpView);
+}
+function bvpView(){
+  let h=`<button class="back" id="b">&larr; All lessons</button>
+  <h2>Beginner vs Pro</h2><p class="sub">Same speaker, different impact. ${BVP.length} swaps, grouped by chapter.</p>
+  <div class="row"><button class="btn" data-q="all">Quiz me on all</button></div>`;
+  L.forEach((l,li)=>{
+    const items=BVP.filter(p=>p[3]===li);if(!items.length)return;
+    h+=`<div class="row" style="justify-content:space-between;margin-top:22px"><h2 style="margin:0">${l.n}. ${esc(l.t)}</h2>
+      <button class="btn ghost" style="padding:6px 14px" data-q="${li}">Quiz</button></div>`+
+    items.map(p=>`<div class="card"><div class="bp"><div class="b"><small>Beginner</small>${esc(p[0])}</div>
+      <div class="g"><small>Pro</small>${esc(p[1])}</div></div>
+      <div class="row" style="justify-content:space-between;align-items:flex-start"><span style="color:var(--mute);font-size:14px">${esc(p[2])}</span>
+      <button class="say" title="Listen" data-p="${esc(p[1])}">&#128266;</button></div></div>`).join("");
+  });
+  $.innerHTML=h;
+  document.getElementById("b").onclick=home;
+  $.querySelectorAll(".say").forEach(b=>b.onclick=()=>speak(b.dataset.p));
+  $.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>{const q=b.dataset.q;
+    q==="all"?bvpQuiz(BVP,"Beginner vs Pro"):bvpQuiz(BVP.filter(p=>p[3]===+q),"Beginner vs Pro: "+L[+q].t)});
   scrollTo(0,0);
 }
 function weakQuiz(){
@@ -692,7 +769,7 @@ function lesson(i){
 }
 let T=null;
 const stopT=()=>{clearInterval(T);T=null};
-function startQuiz(title,qs,lessonIdx,timed){Q={title,qs,i:0,score:0,miss:[],lesson:lessonIdx,timed:!!timed};ask()}
+function startQuiz(title,qs,lessonIdx,timed,ret){Q={title,qs,i:0,score:0,miss:[],lesson:lessonIdx,timed:!!timed,ret};ask()}
 function ask(){
   const q=Q.qs[Q.i];
   $.innerHTML=`<button class="back" id="b">&larr; Quit</button>
@@ -702,7 +779,7 @@ function ask(){
   <div class="big">${q.html?q.text:esc(q.text)}</div>
   <div id="o">${q.opts.map((o,k)=>`<button class="opt" data-k="${k}">${esc(o)}</button>`).join("")}</div>
   <div id="fb"></div>`;
-  document.getElementById("b").onclick=()=>{stopT();Q.lesson!=null?lesson(Q.lesson):home()};
+  document.getElementById("b").onclick=()=>{stopT();Q.ret?Q.ret():Q.lesson!=null?lesson(Q.lesson):home()};
   $.querySelectorAll(".opt").forEach(b=>b.onclick=()=>pick(+b.dataset.k));
   stopT();
   if(Q.timed){const t0=Date.now(),bar=document.getElementById("tb");
@@ -735,7 +812,7 @@ function finish(){
   `<div class="row" style="margin-top:16px"><button class="btn" id="again">Try again</button>
   <button class="btn ghost" id="hm">All lessons</button></div>`;
   document.getElementById("hm").onclick=home;
-  document.getElementById("again").onclick=()=>Q.lesson!=null?lesson(Q.lesson):home();
+  document.getElementById("again").onclick=()=>Q.ret?Q.ret():Q.lesson!=null?lesson(Q.lesson):home();
   scrollTo(0,0);
 }
 function cards(title,items,back){
