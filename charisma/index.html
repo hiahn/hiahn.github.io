@@ -13,8 +13,8 @@
 <title>Unlock Your Charisma – Expression Quiz</title>
 <meta name="description" content="15 charisma lessons, each with key expressions to learn and a quiz to practise them.">
 <style>
-:root{--bg:#f6f5fb;--card:#fff;--ink:#1d1b2e;--mute:#6b6880;--line:#e4e1f0;--acc:#6d5ef0;--acc2:#a78bfa;--ok:#15935a;--okbg:#e3f6ec;--bad:#d03a4a;--badbg:#fde8ea;--hl:#fff1b8}
-@media (prefers-color-scheme:dark){:root{--bg:#0f0e17;--card:#1a1826;--ink:#f1effa;--mute:#9a97b0;--line:#2b2840;--acc:#8b7dff;--acc2:#b9a7ff;--ok:#4cd391;--okbg:#12332a;--bad:#ff7a87;--badbg:#3a1a21;--hl:#4a3f10}}
+:root{--bg:#f3f6fa;--card:#fff;--ink:#14122a;--mute:#5f6b7a;--line:#dde4ee;--acc:#0b8a78;--acc2:#8b7dff;--g1:#34e0c4;--g2:#8b7dff;--btnink:#14122a;--ok:#15935a;--okbg:#e3f6ec;--bad:#d03a4a;--badbg:#fde8ea;--hl:#fff1b8}
+@media (prefers-color-scheme:dark){:root{--bg:#14122a;--card:#1f1b3d;--ink:#f1effa;--mute:#a29fc0;--line:#352f66;--acc:#34e0c4;--acc2:#8b7dff;--ok:#4cd391;--okbg:#12332a;--bad:#ff7a87;--badbg:#3a1a21;--hl:#4a3f10}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
 #app{max-width:640px;margin:0 auto;padding:16px 16px 64px}
@@ -22,18 +22,18 @@ h1{font-size:28px;line-height:1.15;margin:8px 0 4px}
 h2{font-size:22px;margin:4px 0 8px}
 .sub{color:var(--mute);margin:0 0 16px}
 button{font:inherit;color:inherit;cursor:pointer}
-.btn{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border:0;border-radius:999px;padding:12px 22px;font-weight:600}
+.btn{background:linear-gradient(135deg,var(--g1),var(--g2));color:var(--btnink);border:0;border-radius:999px;padding:12px 22px;font-weight:600}
 .btn.ghost{background:transparent;color:var(--acc);border:1.5px solid var(--acc)}
 .btn:disabled{opacity:.4;cursor:default}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin:10px 0}
 .lesson{display:flex;gap:14px;align-items:center;width:100%;text-align:left}
-.lesson .n{flex:none;width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;display:grid;place-items:center;font-weight:700}
+.lesson .n{flex:none;width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--g1),var(--g2));color:var(--btnink);display:grid;place-items:center;font-weight:700}
 .lesson .t{flex:1;font-weight:600}
 .lesson .t small{display:block;color:var(--mute);font-weight:400}
 .badge{font-size:13px;font-weight:600;color:var(--ok)}
 .bar{height:6px;border-radius:9px;background:var(--line);overflow:hidden;margin:6px 0 18px}
-.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .3s}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--g1),var(--g2));transition:width .3s}
 .back{background:none;border:0;color:var(--acc);padding:4px 0;font-weight:600}
 .tip{border-left:4px solid var(--acc);padding:8px 12px;background:var(--card);border-radius:0 12px 12px 0;margin:12px 0}
 .x .p{font-size:19px;font-weight:700;display:flex;justify-content:space-between;gap:8px}
@@ -61,7 +61,7 @@ mark{background:var(--hl);color:inherit;border-radius:4px;padding:0 3px}
 .seg .m{background:var(--ok)}.seg .l{background:var(--acc2)}
 .days{display:flex;gap:8px;align-items:flex-end;height:90px;margin-top:8px}
 .days div{flex:1;text-align:center;font-size:12px;color:var(--mute);display:flex;flex-direction:column;justify-content:flex-end;height:100%}
-.days i{display:block;background:linear-gradient(var(--acc2),var(--acc));border-radius:6px 6px 2px 2px;min-height:3px;margin-bottom:4px}
+.days i{display:block;background:linear-gradient(var(--g2),var(--g1));border-radius:6px 6px 2px 2px;min-height:3px;margin-bottom:4px}
 .dl{width:100%;text-align:left;display:block}
 .dl small{color:var(--mute)}
 .legend{font-size:13px;color:var(--mute)}
