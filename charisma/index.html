@@ -670,11 +670,15 @@ function home(){
   document.getElementById("bvp").onclick=bvpView;
   scrollTo(0,0);
 }
-function bvpQuiz(items,title){
+const bvpCards=items=>items.map(p=>`<div class="card"><div class="bp"><div class="b"><small>Beginner</small>${esc(p[0])}</div>
+      <div class="g"><small>Pro</small>${esc(p[1])}</div></div>
+      <div class="row" style="justify-content:space-between;align-items:flex-start"><span style="color:var(--mute);font-size:14px">${esc(p[2])}</span>
+      <button class="say" title="Listen" data-p="${esc(p[1])}">&#128266;</button></div></div>`).join("");
+function bvpQuiz(items,title,ret){
   startQuiz(title,shuf(items).slice(0,10).map(([bg,pro,why])=>{
     const opts=shuf([bg,pro]);
     return{id:null,kind:"Which sounds like a pro?",text:"Pick the stronger phrasing",opts,ans:opts.indexOf(pro),
-      exp:`<b style="color:var(--ok)">Pro:</b> ${esc(pro)}<br><b style="color:var(--bad)">Beginner:</b> ${esc(bg)}<br>${esc(why)}`,say:pro}}),null,false,bvpView);
+      exp:`<b style="color:var(--ok)">Pro:</b> ${esc(pro)}<br><b style="color:var(--bad)">Beginner:</b> ${esc(bg)}<br>${esc(why)}`,say:pro}}),null,false,ret||bvpView);
 }
 function bvpView(){
   let h=`<button class="back" id="b">&larr; All lessons</button>
@@ -684,10 +688,7 @@ function bvpView(){
     const items=BVP.filter(p=>p[3]===li);if(!items.length)return;
     h+=`<div class="row" style="justify-content:space-between;margin-top:22px"><h2 style="margin:0">${l.n}. ${esc(l.t)}</h2>
       <button class="btn ghost" style="padding:6px 14px" data-q="${li}">Quiz</button></div>`+
-    items.map(p=>`<div class="card"><div class="bp"><div class="b"><small>Beginner</small>${esc(p[0])}</div>
-      <div class="g"><small>Pro</small>${esc(p[1])}</div></div>
-      <div class="row" style="justify-content:space-between;align-items:flex-start"><span style="color:var(--mute);font-size:14px">${esc(p[2])}</span>
-      <button class="say" title="Listen" data-p="${esc(p[1])}">&#128266;</button></div></div>`).join("");
+    bvpCards(items);
   });
   $.innerHTML=h;
   document.getElementById("b").onclick=home;
@@ -752,6 +753,7 @@ function lesson(i){
   <label style="color:var(--mute);font-size:14px"><input type="checkbox" id="cv"> Cover answers</label></div>
   <div id="xs">`+l.x.map(x=>`<div class="card x"><div class="p"><span>${esc(x[0])}</span><button class="say" title="Listen" data-p="${esc(x[0])}">&#128266;</button></div>
     <div class="m">${esc(x[1])}</div><div class="e">${hl(x[2],x[0])}</div></div>`).join("")+`</div>
+  ${BVP.some(p=>p[3]===i)?`<h2 style="margin-top:22px">Beginner vs Pro</h2><p class="sub" style="margin-bottom:4px">Swap the left phrase for the right one.</p>`+bvpCards(BVP.filter(p=>p[3]===i))+`<button class="btn ghost" id="gb">Quiz these swaps</button>`:""}
   ${l.dr?`<h2 style="margin-top:22px">Practice drills</h2>`+l.dr.map(d=>`<div class="card"><b>${esc(d.t)}</b><p style="margin:4px 0 8px;color:var(--mute)">${esc(d.s)}</p>`+
     (d.w||[]).map(w=>`<div class="x"><div class="p" style="font-size:16px;font-weight:600"><span>${esc(w)}</span><button class="say" title="Listen" data-p="${esc(w)}">&#128266;</button></div></div>`).join("")+`</div>`).join(""):""}
   <div class="row" style="margin-top:16px"><button class="btn" id="go">Start quiz</button><button class="btn ghost" id="gt">Timed quiz</button><button class="btn ghost" id="gf">Flashcards</button></div>`;
@@ -764,6 +766,8 @@ function lesson(i){
     build(l.x.map((_,xi)=>X(i,xi)),l.pr.map((_,pi)=>[i,pi]),10),i,timed);
   document.getElementById("go").onclick=()=>lq(false);
   document.getElementById("gt").onclick=()=>lq(true);
+  const gb=document.getElementById("gb");
+  if(gb)gb.onclick=()=>bvpQuiz(BVP.filter(p=>p[3]===i),"Beginner vs Pro: "+l.t,()=>lesson(i));
   document.getElementById("gf").onclick=()=>cards("Lesson "+l.n+": "+l.t,l.x.map((_,xi)=>X(i,xi)),i);
   scrollTo(0,0);
 }
