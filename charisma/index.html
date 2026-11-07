@@ -563,11 +563,55 @@ const BVP=[
 ["Wait, what do you mean?", "Can you narrow that down for me?", "Clarify a broad question.", 22],
 ["Um, probably yes, I think?", "The short answer is yes, and here's why.", "Answer first, then explain.", 22]
 ];
+/* LLM inference quiz data. s = section index, a = correct answer, w = wrong answers, e = explanation */
+const LQ_SECTIONS=["Inference basics","Batching and memory","Scaling","Production ops","Cost control"];
+const LQ=[
+// Inference basics
+{s:0,q:"Which phase of LLM inference is memory-bandwidth-bound?",a:"Decode",w:["Prefill","Tokenization","Prompt templating"],e:"Decode generates one token per step and re-reads the weights and KV cache every step. Prefill processes the whole prompt in parallel and is compute-bound. Some systems run the two phases on separate GPU pools."},
+{s:0,q:"What is the size of the KV cache per token?",a:"2 × layers × KV heads × head dim × bytes",w:["layers × vocabulary size × bytes","2 × batch size × sequence length × bytes","KV heads × head dim, regardless of layers"],e:"The KV cache stores attention keys and values (the 2) for every past token, per layer. For Llama 3 8B in FP16 that is about 128 KB per token."},
+{s:0,q:"Roughly how much KV cache does an 8k-token request hold for Llama 3 8B in FP16?",a:"About 1 GB",w:["About 10 MB","About 100 MB","About 16 GB"],e:"128 KB per token × 8,192 tokens ≈ 1 GB."},
+{s:0,q:"Time to first token (TTFT) is best described as:",a:"Queue wait + prefill + network",w:["Prefill + every decode step of the full response","Decode time per token × number of output tokens","Weight loading time at server start"],e:"TTFT is what the user waits before anything appears."},
+{s:0,q:"Which change lowers TTFT?",a:"Prefix caching and shorter prompts",w:["Raising the maximum output length","Adding a longer system prompt","Disabling chunked prefill"],e:"Other levers: chunked prefill and avoiding overloaded queues."},
+{s:0,q:"What tends to increase inter-token latency (ITL)?",a:"Larger batch size and longer context",w:["Prefix caching","A smaller batch size","Streaming responses"],e:"ITL is the time per decode step. It rises with batch size and context length."},
+{s:0,q:"What ITL do most chat UIs need to feel smooth?",a:"Roughly 20-50 ms per token",w:["Under 1 ms per token","Around 200-500 ms per token","About 2 seconds per token"],e:"That corresponds to about 20-50 tokens per second."},
+{s:0,q:"What is the right order when balancing latency and throughput?",a:"Set SLOs first, then maximize throughput within them",w:["Maximize batch size first, then see what latency results","Minimize latency at any cost","Always run batch size 1"],e:"Bigger batches give more total tokens/sec but slower individual requests. Example SLO: p95 TTFT under 1 s and ITL under 50 ms."},
+// Batching and memory
+{s:1,q:"What does continuous batching do differently from static batching?",a:"It schedules at every decode step, so finished requests leave and new ones join immediately",w:["It waits for the slowest request in the batch to finish","It sorts requests by prompt length once, at startup","It requires all requests in a batch to have the same output length"],e:"Static batching waits for the slowest request. Continuous batching raises GPU utilization a lot."},
+{s:1,q:"What is PagedAttention?",a:"KV cache split into fixed-size blocks mapped through a table, like OS virtual memory",w:["Compressing the KV cache to INT4","Moving the KV cache to CPU memory for every request","Sharing model weights between GPUs"],e:"It avoids reserving max-length space per request and cuts fragmentation, so more requests fit at once."},
+{s:1,q:"Compared with FP16, INT4 weights need about:",a:"A quarter of the memory",w:["Half the memory","The same memory","Double the memory"],e:"INT8 halves memory versus FP16 and INT4 quarters it. Always evaluate quality on your own tasks."},
+{s:1,q:"On which GPUs is FP8 natively accelerated?",a:"Newer ones such as H100 and Ada",w:["Older ones such as V100","Only CPUs","Any GPU, with no difference"],e:"You can also quantize the KV cache, not just the weights."},
+{s:1,q:"Which statement about GPTQ and AWQ is correct?",a:"AWQ protects the most important weights, identified by activation magnitude",w:["AWQ minimizes layer-wise error using second-order information","Both quantize activations to 4-bit at runtime","Both require retraining the model from scratch"],e:"Both are post-training, weight-only 4-bit methods. GPTQ is the one that minimizes layer-wise error using second-order information. Both help decode most and help less at very high batch sizes."},
+{s:1,q:"How does speculative decoding work?",a:"A small draft model proposes several tokens and the big model verifies them in one pass",w:["The big model skips layers for easy tokens","Tokens are generated in random order and sorted later","The prompt is cached and decoding is skipped"],e:"The output distribution is unchanged."},
+{s:1,q:"How does the speedup of speculative decoding change as batch size grows?",a:"It shrinks (typically 2-3x at low load)",w:["It grows without limit","It stays exactly the same","It turns into a slowdown at batch size 2"],e:"It helps most when the GPU has spare capacity at low load."},
+{s:1,q:"How should you arrange a prompt to benefit from prefix caching?",a:"Static content first, variable content last",w:["User question first, system prompt last","Random order of few-shot examples each time","Put a timestamp at the very start"],e:"The match must be an exact prefix, so shared content (system prompt, few-shot examples, shared documents) must come first and unchanged."},
+{s:1,q:"Which is NOT a lever for reducing KV memory pressure from long contexts?",a:"Increasing the batch size",w:["Using GQA models","Quantizing the KV cache","Capping the maximum context"],e:"KV memory grows linearly with tokens, so long contexts reduce concurrency. Sliding-window attention is another lever."},
+{s:1,q:"How much memory do the weights of a 70B model in FP16 need?",a:"About 140 GB",w:["About 35 GB","About 70 GB","About 280 GB"],e:"70B parameters × 2 bytes. Budget weights + KV cache pool + activations/overhead, with about 10% headroom."},
+{s:1,q:"How is concurrency estimated?",a:"KV pool size ÷ KV per request",w:["Total VRAM ÷ weight size","Number of GPUs × batch size","KV per request ÷ KV pool size"],e:"Whatever remains after weights and overhead becomes the KV pool."},
+// Scaling
+{s:2,q:"What does tensor parallelism do?",a:"Splits each layer's matrices across GPUs, with an all-reduce every layer",w:["Assigns different layers to different GPUs","Replicates the whole model on each GPU","Splits the prompt across GPUs by token position"],e:"It lowers latency but needs fast interconnects such as NVLink, so keep it within one node."},
+{s:2,q:"What is the main downside of pipeline parallelism?",a:"Pipeline bubbles waste time unless you use micro-batches",w:["It needs an all-reduce in every layer","It cannot be used across nodes","It doubles KV cache size"],e:"It assigns groups of layers to different GPUs. It needs less bandwidth, so it suits multi-node setups."},
+{s:2,q:"What is the rule of thumb for multi-GPU serving?",a:"Fewest GPUs that fit the model, TP within a node, PP across nodes, replicas for throughput",w:["Always use all available GPUs with PP","TP across nodes, PP within a node","Use as many replicas as possible and one GPU per model regardless of size"],e:"MoE models add expert parallelism."},
+{s:2,q:"Which serving engine is NVIDIA's, often fastest on their hardware but with more setup and compile steps?",a:"TensorRT-LLM",w:["vLLM","TGI","SGLang"],e:"vLLM is flexible and widely supported, with an OpenAI-compatible API. TGI is Hugging Face's server. SGLang is another strong option. Benchmark on your own workload."},
+{s:2,q:"Which serving engine is Hugging Face's, with tight ecosystem integration?",a:"TGI",w:["TensorRT-LLM","vLLM","SGLang"],e:"TGI stands for Text Generation Inference."},
+// Production ops
+{s:3,q:"What should you do when a streaming client disconnects?",a:"Cancel generation to free the KV cache",w:["Keep generating until the response is finished","Retry the request automatically","Restart the server"],e:"Also make sure proxies do not buffer the SSE stream, otherwise streaming loses its benefit."},
+{s:3,q:"How should rate limits be applied to an LLM API?",a:"By tokens, not just requests, with bounded queues",w:["By requests only","By IP address only","Not at all; the GPU handles it"],e:"Also add priority tiers and shed load before the GPU's KV capacity is exhausted."},
+{s:3,q:"What should you return when the service is overloaded?",a:"429 with a Retry-After header",w:["200 with an empty body","500 with no details","301 redirect to another region"],e:"Clients can then back off cleanly."},
+{s:3,q:"What should autoscaling be driven by?",a:"Queue depth or KV utilization",w:["CPU utilization","Disk usage","Time of day only"],e:"CPU is a poor signal because the GPU is the bottleneck."},
+{s:3,q:"Why are cold starts a problem for LLM serving?",a:"Loading tens of GB of weights can take minutes",w:["Tokenizers need recompiling","TLS handshakes take minutes","KV caches must be recomputed from the internet"],e:"Keep a warm pool and cache images and weights close to the nodes. Scale-to-zero saves money but hurts first-request latency."},
+// Cost control
+{s:4,q:"What is the main risk of model routing?",a:"Misrouting hurts quality silently",w:["It always increases latency","It forbids caching","It needs a bigger GPU"],e:"Send simple requests to a small model and escalate hard ones using heuristics, a classifier or a confidence cascade. Measure quality per route."},
+{s:4,q:"What is the main risk of semantic caching?",a:"False hits on personalized or time-sensitive queries",w:["It cannot work with embeddings","It increases GPU memory use","It disables streaming"],e:"It works well for FAQs: embed the query, find a near neighbor, and return the cached answer above a similarity threshold."},
+{s:4,q:"Why must you test provider fallback paths?",a:"Prompts can behave differently across models",w:["Fallbacks never trigger in production","Secondary providers are always cheaper","Circuit breakers disable retries"],e:"On timeouts or 5xx errors, fail over to a secondary provider or model, with circuit breakers."},
+{s:4,q:"A $2/hr GPU serves 2,000 tokens/sec. What is the cost per million tokens?",a:"About $0.28",w:["About $0.028","About $2.80","About $28"],e:"$2 ÷ (2,000 × 3,600) × 1,000,000 ≈ $0.28. Utilization is the main lever, and input and output tokens should be tracked separately."},
+{s:4,q:"What often dominates cost per request?",a:"Long prompts (input tokens, RAG context)",w:["Network egress","GPU driver version","The number of GPUs in the data center"],e:"Count input + output tokens plus retries, RAG context and tool calls. Track p50 and p95, and ideally cost per successful task."}
+];
+
 /* ---------- storage ---------- */
 const KEY="charisma-quiz-v1";
 let S={best:{},weak:{}};
 try{S=Object.assign(S,JSON.parse(localStorage.getItem(KEY)||"{}"))}catch(e){}
-S.stats=S.stats||{};S.days=S.days||{};S.hist=S.hist||[];
+S.stats=S.stats||{};S.llm=S.llm||{};S.days=S.days||{};S.hist=S.hist||[];
 // lesson 15 expressions were replaced; drop stats tied to the old ones
 if(!S.m2){["14.1","14.4","14.7","14.8"].forEach(k=>{delete S.stats[k];delete S.weak[k]});S.m2=1;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
@@ -656,6 +700,7 @@ function home(){
   <div class="row" style="margin-top:10px"><button class="btn ghost" id="fcAll">Flashcards</button>
   <button class="btn ghost" id="prog">Progress</button>
   <button class="btn ghost" id="bvp">Beginner vs Pro</button>
+  <button class="btn ghost" id="llm">LLM Inference Quiz</button>
   <button class="btn ghost" id="timed">Timed challenge${S.bestTimed!=null?" (best "+S.bestTimed+"%)":""}</button></div>
   <div style="height:8px"></div>`+
   L.map((l,i)=>(l.h?`<h2 style="margin-top:20px">${esc(l.h)}</h2>`:"")+`<button class="card lesson" data-i="${i}"><span class="n">${l.n}</span>
@@ -668,6 +713,7 @@ function home(){
   document.getElementById("weak").onclick=weakQuiz;
   document.getElementById("prog").onclick=dash;
   document.getElementById("bvp").onclick=bvpView;
+  document.getElementById("llm").onclick=llmView;
   scrollTo(0,0);
 }
 const bvpCards=items=>items.map(p=>`<div class="card"><div class="bp"><div class="b"><small>Beginner</small>${esc(p[0])}</div>
@@ -695,6 +741,25 @@ function bvpView(){
   $.querySelectorAll(".say").forEach(b=>b.onclick=()=>speak(b.dataset.p));
   $.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>{const q=b.dataset.q;
     q==="all"?bvpQuiz(BVP,"Beginner vs Pro"):bvpQuiz(BVP.filter(p=>p[3]===+q),"Beginner vs Pro: "+L[+q].t)});
+  scrollTo(0,0);
+}
+function llmQuiz(title,pool,key,n){
+  const qs=shuf(pool).slice(0,n||pool.length).map(q=>{
+    const opts=shuf([q.a,...q.w]);
+    return{id:null,kind:LQ_SECTIONS[q.s],text:q.q,opts,ans:opts.indexOf(q.a),exp:`<b>Answer:</b> ${esc(q.a)}<br>${esc(q.e)}`}});
+  startQuiz(title,qs,null,false,llmView);Q.llmKey=key;
+}
+function llmView(){
+  $.innerHTML=`<button class="back" id="b">&larr; All lessons</button><h2>LLM Inference Quiz</h2>
+  <p class="sub">${LQ.length} questions on latency, batching, memory, scaling, ops and cost.</p>
+  <div class="row"><button class="btn" id="all">Full quiz (${LQ.length})</button><button class="btn ghost" id="q10">Quick 10</button></div>
+  <div style="height:8px"></div>`+
+  LQ_SECTIONS.map((t,i)=>`<button class="card lesson" data-i="${i}"><span class="n">${i+1}</span>
+    <span class="t">${esc(t)}<small>${LQ.filter(q=>q.s===i).length} questions</small></span>${S.llm[i]!=null?`<span class="badge">${S.llm[i]}%</span>`:""}</button>`).join("");
+  document.getElementById("b").onclick=home;
+  document.getElementById("all").onclick=()=>llmQuiz("LLM Inference Quiz",LQ,"all");
+  document.getElementById("q10").onclick=()=>llmQuiz("LLM Inference: Quick 10",LQ,null,10);
+  $.querySelectorAll(".lesson").forEach(b=>b.onclick=()=>llmQuiz("LLM Inference: "+LQ_SECTIONS[+b.dataset.i],LQ.filter(q=>q.s===+b.dataset.i),+b.dataset.i));
   scrollTo(0,0);
 }
 function weakQuiz(){
@@ -741,7 +806,7 @@ function dash(){
   document.getElementById("b").onclick=home;
   $.querySelectorAll(".dl").forEach(b=>b.onclick=()=>lesson(+b.dataset.i));
   const wk=document.getElementById("wk");if(wk)wk.onclick=weakQuiz;
-  document.getElementById("rs").onclick=()=>{if(confirm("Erase all scores, weak spots and history?")){S={best:{},weak:{},stats:{},days:{},hist:[]};save();home()}};
+  document.getElementById("rs").onclick=()=>{if(confirm("Erase all scores, weak spots and history?")){S={best:{},weak:{},stats:{},days:{},hist:[],llm:{}};save();home()}};
   scrollTo(0,0);
 }
 function lesson(i){
@@ -808,6 +873,7 @@ function finish(){
   const pct=Math.round(Q.score/Q.qs.length*100);
   if(Q.timed&&Q.lesson==null&&(S.bestTimed==null||pct>S.bestTimed)){S.bestTimed=pct;save()}
   if(!Q.timed&&Q.lesson!=null&&(S.best[Q.lesson]==null||pct>S.best[Q.lesson])){S.best[Q.lesson]=pct;save()}
+  if(Q.llmKey!=null&&(S.llm[Q.llmKey]==null||pct>S.llm[Q.llmKey]))S.llm[Q.llmKey]=pct;
   S.hist.push({t:Date.now(),title:Q.title,pct});S.hist=S.hist.slice(-50);save();
   const msg=pct===100?"Perfect! You're ready to use these.":pct>=70?"Great job. Review the misses below.":"Keep practising. Re-read the lesson and try again.";
   $.innerHTML=`<div class="bar"><i style="width:100%"></i></div><p class="q center">${esc(Q.title)}</p>
