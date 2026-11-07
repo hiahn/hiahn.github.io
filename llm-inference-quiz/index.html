@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LLM Inference Quiz</title>
+<meta name="description" content="Multiple-choice quiz on LLM inference: latency, batching, memory, scaling, production ops and cost.">
+<meta name="theme-color" content="#14122a">
+<style>
+:root{--bg:#f3f6fa;--card:#fff;--ink:#14122a;--mute:#5f6b7a;--line:#dde4ee;--acc:#0b8a78;--g1:#34e0c4;--g2:#8b7dff;--btnink:#14122a;--ok:#15935a;--okbg:#e3f6ec;--bad:#d03a4a;--badbg:#fde8ea}
+@media (prefers-color-scheme:dark){:root{--bg:#14122a;--card:#1f1b3d;--ink:#f1effa;--mute:#a29fc0;--line:#352f66;--acc:#34e0c4;--ok:#4cd391;--okbg:#12332a;--bad:#ff7a87;--badbg:#3a1a21}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+#app{max-width:640px;margin:0 auto;padding:16px 16px 64px}
+h1{font-size:28px;line-height:1.15;margin:8px 0 4px}h2{font-size:20px;margin:4px 0 8px}
+.sub{color:var(--mute);margin:0 0 16px}
+button{font:inherit;color:inherit;cursor:pointer}
+.btn{background:linear-gradient(135deg,var(--g1),var(--g2));color:var(--btnink);border:0;border-radius:999px;padding:12px 22px;font-weight:600}
+.btn.ghost{background:transparent;color:var(--acc);border:1.5px solid var(--acc)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin:10px 0}
+.sec{display:flex;gap:14px;align-items:center;width:100%;text-align:left}
+.sec .n{flex:none;width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--g1),var(--g2));color:var(--btnink);display:grid;place-items:center;font-weight:700}
+.sec .t{flex:1;font-weight:600}.sec .t small{display:block;color:var(--mute);font-weight:400}
+.badge{font-size:13px;font-weight:600;color:var(--ok)}
+.bar{height:6px;border-radius:9px;background:var(--line);overflow:hidden;margin:6px 0 18px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--g1),var(--g2));transition:width .3s}
+.back{background:none;border:0;color:var(--acc);padding:4px 0;font-weight:600}
+.q{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);margin:0}
+.big{font-size:20px;font-weight:600;margin:6px 0 16px}
+.opt{display:block;width:100%;text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:13px 15px;margin:8px 0}
+.opt:hover:not(:disabled){border-color:var(--acc)}
+.opt.ok{background:var(--okbg);border-color:var(--ok)}.opt.bad{background:var(--badbg);border-color:var(--bad)}
+.fb{margin:14px 0;padding:12px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line)}
+.score{font-size:56px;font-weight:800;text-align:center;margin:12px 0 0;color:var(--acc)}
+.center{text-align:center}.miss{border-left:4px solid var(--bad)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* s = section, q = question, a = correct answer, w = wrong answers, e = explanation */
+const SECTIONS=["Inference basics","Batching and memory","Scaling","Production ops","Cost control"];
+const Q=[
+// Inference basics
+{s:0,q:"Which phase of LLM inference is memory-bandwidth-bound?",a:"Decode",w:["Prefill","Tokenization","Prompt templating"],e:"Decode generates one token per step and re-reads the weights and KV cache every step. Prefill processes the whole prompt in parallel and is compute-bound. Some systems run the two phases on separate GPU pools."},
+{s:0,q:"What is the size of the KV cache per token?",a:"2 × layers × KV heads × head dim × bytes",w:["layers × vocabulary size × bytes","2 × batch size × sequence length × bytes","KV heads × head dim, regardless of layers"],e:"The KV cache stores attention keys and values (the 2) for every past token, per layer. For Llama 3 8B in FP16 that is about 128 KB per token."},
+{s:0,q:"Roughly how much KV cache does an 8k-token request hold for Llama 3 8B in FP16?",a:"About 1 GB",w:["About 10 MB","About 100 MB","About 16 GB"],e:"128 KB per token × 8,192 tokens ≈ 1 GB."},
+{s:0,q:"Time to first token (TTFT) is best described as:",a:"Queue wait + prefill + network",w:["Prefill + every decode step of the full response","Decode time per token × number of output tokens","Weight loading time at server start"],e:"TTFT is what the user waits before anything appears."},
+{s:0,q:"Which change lowers TTFT?",a:"Prefix caching and shorter prompts",w:["Raising the maximum output length","Adding a longer system prompt","Disabling chunked prefill"],e:"Other levers: chunked prefill and avoiding overloaded queues."},
+{s:0,q:"What tends to increase inter-token latency (ITL)?",a:"Larger batch size and longer context",w:["Prefix caching","A smaller batch size","Streaming responses"],e:"ITL is the time per decode step. It rises with batch size and context length."},
+{s:0,q:"What ITL do most chat UIs need to feel smooth?",a:"Roughly 20-50 ms per token",w:["Under 1 ms per token","Around 200-500 ms per token","About 2 seconds per token"],e:"That corresponds to about 20-50 tokens per second."},
+{s:0,q:"What is the right order when balancing latency and throughput?",a:"Set SLOs first, then maximize throughput within them",w:["Maximize batch size first, then see what latency results","Minimize latency at any cost","Always run batch size 1"],e:"Bigger batches give more total tokens/sec but slower individual requests. Example SLO: p95 TTFT under 1 s and ITL under 50 ms."},
+// Batching and memory
+{s:1,q:"What does continuous batching do differently from static batching?",a:"It schedules at every decode step, so finished requests leave and new ones join immediately",w:["It waits for the slowest request in the batch to finish","It sorts requests by prompt length once, at startup","It requires all requests in a batch to have the same output length"],e:"Static batching waits for the slowest request. Continuous batching raises GPU utilization a lot."},
+{s:1,q:"What is PagedAttention?",a:"KV cache split into fixed-size blocks mapped through a table, like OS virtual memory",w:["Compressing the KV cache to INT4","Moving the KV cache to CPU memory for every request","Sharing model weights between GPUs"],e:"It avoids reserving max-length space per request and cuts fragmentation, so more requests fit at once."},
+{s:1,q:"Compared with FP16, INT4 weights need about:",a:"A quarter of the memory",w:["Half the memory","The same memory","Double the memory"],e:"INT8 halves memory versus FP16 and INT4 quarters it. Always evaluate quality on your own tasks."},
+{s:1,q:"On which GPUs is FP8 natively accelerated?",a:"Newer ones such as H100 and Ada",w:["Older ones such as V100","Only CPUs","Any GPU, with no difference"],e:"You can also quantize the KV cache, not just the weights."},
+{s:1,q:"Which statement about GPTQ and AWQ is correct?",a:"AWQ protects the most important weights, identified by activation magnitude",w:["AWQ minimizes layer-wise error using second-order information","Both quantize activations to 4-bit at runtime","Both require retraining the model from scratch"],e:"Both are post-training, weight-only 4-bit methods. GPTQ is the one that minimizes layer-wise error using second-order information. Both help decode most and help less at very high batch sizes."},
+{s:1,q:"How does speculative decoding work?",a:"A small draft model proposes several tokens and the big model verifies them in one pass",w:["The big model skips layers for easy tokens","Tokens are generated in random order and sorted later","The prompt is cached and decoding is skipped"],e:"The output distribution is unchanged."},
+{s:1,q:"How does the speedup of speculative decoding change as batch size grows?",a:"It shrinks (typically 2-3x at low load)",w:["It grows without limit","It stays exactly the same","It turns into a slowdown at batch size 2"],e:"It helps most when the GPU has spare capacity at low load."},
+{s:1,q:"How should you arrange a prompt to benefit from prefix caching?",a:"Static content first, variable content last",w:["User question first, system prompt last","Random order of few-shot examples each time","Put a timestamp at the very start"],e:"The match must be an exact prefix, so shared content (system prompt, few-shot examples, shared documents) must come first and unchanged."},
+{s:1,q:"Which is NOT a lever for reducing KV memory pressure from long contexts?",a:"Increasing the batch size",w:["Using GQA models","Quantizing the KV cache","Capping the maximum context"],e:"KV memory grows linearly with tokens, so long contexts reduce concurrency. Sliding-window attention is another lever."},
+{s:1,q:"How much memory do the weights of a 70B model in FP16 need?",a:"About 140 GB",w:["About 35 GB","About 70 GB","About 280 GB"],e:"70B parameters × 2 bytes. Budget weights + KV cache pool + activations/overhead, with about 10% headroom."},
+{s:1,q:"How is concurrency estimated?",a:"KV pool size ÷ KV per request",w:["Total VRAM ÷ weight size","Number of GPUs × batch size","KV per request ÷ KV pool size"],e:"Whatever remains after weights and overhead becomes the KV pool."},
+// Scaling
+{s:2,q:"What does tensor parallelism do?",a:"Splits each layer's matrices across GPUs, with an all-reduce every layer",w:["Assigns different layers to different GPUs","Replicates the whole model on each GPU","Splits the prompt across GPUs by token position"],e:"It lowers latency but needs fast interconnects such as NVLink, so keep it within one node."},
+{s:2,q:"What is the main downside of pipeline parallelism?",a:"Pipeline bubbles waste time unless you use micro-batches",w:["It needs an all-reduce in every layer","It cannot be used across nodes","It doubles KV cache size"],e:"It assigns groups of layers to different GPUs. It needs less bandwidth, so it suits multi-node setups."},
+{s:2,q:"What is the rule of thumb for multi-GPU serving?",a:"Fewest GPUs that fit the model, TP within a node, PP across nodes, replicas for throughput",w:["Always use all available GPUs with PP","TP across nodes, PP within a node","Use as many replicas as possible and one GPU per model regardless of size"],e:"MoE models add expert parallelism."},
+{s:2,q:"Which serving engine is NVIDIA's, often fastest on their hardware but with more setup and compile steps?",a:"TensorRT-LLM",w:["vLLM","TGI","SGLang"],e:"vLLM is flexible and widely supported, with an OpenAI-compatible API. TGI is Hugging Face's server. SGLang is another strong option. Benchmark on your own workload."},
+{s:2,q:"Which serving engine is Hugging Face's, with tight ecosystem integration?",a:"TGI",w:["TensorRT-LLM","vLLM","SGLang"],e:"TGI stands for Text Generation Inference."},
+// Production ops
+{s:3,q:"What should you do when a streaming client disconnects?",a:"Cancel generation to free the KV cache",w:["Keep generating until the response is finished","Retry the request automatically","Restart the server"],e:"Also make sure proxies do not buffer the SSE stream, otherwise streaming loses its benefit."},
+{s:3,q:"How should rate limits be applied to an LLM API?",a:"By tokens, not just requests, with bounded queues",w:["By requests only","By IP address only","Not at all; the GPU handles it"],e:"Also add priority tiers and shed load before the GPU's KV capacity is exhausted."},
+{s:3,q:"What should you return when the service is overloaded?",a:"429 with a Retry-After header",w:["200 with an empty body","500 with no details","301 redirect to another region"],e:"Clients can then back off cleanly."},
+{s:3,q:"What should autoscaling be driven by?",a:"Queue depth or KV utilization",w:["CPU utilization","Disk usage","Time of day only"],e:"CPU is a poor signal because the GPU is the bottleneck."},
+{s:3,q:"Why are cold starts a problem for LLM serving?",a:"Loading tens of GB of weights can take minutes",w:["Tokenizers need recompiling","TLS handshakes take minutes","KV caches must be recomputed from the internet"],e:"Keep a warm pool and cache images and weights close to the nodes. Scale-to-zero saves money but hurts first-request latency."},
+// Cost control
+{s:4,q:"What is the main risk of model routing?",a:"Misrouting hurts quality silently",w:["It always increases latency","It forbids caching","It needs a bigger GPU"],e:"Send simple requests to a small model and escalate hard ones using heuristics, a classifier or a confidence cascade. Measure quality per route."},
+{s:4,q:"What is the main risk of semantic caching?",a:"False hits on personalized or time-sensitive queries",w:["It cannot work with embeddings","It increases GPU memory use","It disables streaming"],e:"It works well for FAQs: embed the query, find a near neighbor, and return the cached answer above a similarity threshold."},
+{s:4,q:"Why must you test provider fallback paths?",a:"Prompts can behave differently across models",w:["Fallbacks never trigger in production","Secondary providers are always cheaper","Circuit breakers disable retries"],e:"On timeouts or 5xx errors, fail over to a secondary provider or model, with circuit breakers."},
+{s:4,q:"A $2/hr GPU serves 2,000 tokens/sec. What is the cost per million tokens?",a:"About $0.28",w:["About $0.028","About $2.80","About $28"],e:"$2 ÷ (2,000 × 3,600) × 1,000,000 ≈ $0.28. Utilization is the main lever, and input and output tokens should be tracked separately."},
+{s:4,q:"What often dominates cost per request?",a:"Long prompts (input tokens, RAG context)",w:["Network egress","GPU driver version","The number of GPUs in the data center"],e:"Count input + output tokens plus retries, RAG context and tool calls. Track p50 and p95, and ideally cost per successful task."}
+];
+
+/* ---------- storage ---------- */
+const KEY="llm-inference-quiz-v1";let S={best:{}};
+try{S=Object.assign(S,JSON.parse(localStorage.getItem(KEY)||"{}"))}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const $=document.getElementById("app");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+
+let R=null;
+function home(){
+  $.innerHTML=`<h1>LLM Inference Quiz</h1>
+  <p class="sub">${Q.length} questions across ${SECTIONS.length} topics: latency, batching, memory, scaling, ops and cost.</p>
+  <div class="row"><button class="btn" id="all">Full quiz (${Q.length})</button><button class="btn ghost" id="q10">Quick 10</button></div>
+  <div style="height:8px"></div>`+
+  SECTIONS.map((t,i)=>{const n=Q.filter(q=>q.s===i).length;
+    return `<button class="card sec" data-i="${i}"><span class="n">${i+1}</span><span class="t">${esc(t)}<small>${n} questions</small></span>${S.best[i]!=null?`<span class="badge">${S.best[i]}%</span>`:""}</button>`}).join("");
+  $.querySelectorAll(".sec").forEach(b=>b.onclick=()=>start(SECTIONS[+b.dataset.i],Q.filter(q=>q.s===+b.dataset.i),+b.dataset.i));
+  document.getElementById("all").onclick=()=>start("Full quiz",Q,"all");
+  document.getElementById("q10").onclick=()=>start("Quick 10",Q,null,10);
+  scrollTo(0,0);
+}
+function start(title,pool,key,n){
+  const qs=shuf(pool).slice(0,n||pool.length).map(q=>{const opts=shuf([q.a,...q.w]);return{...q,opts,ans:opts.indexOf(q.a)}});
+  R={title,qs,key,pool,n,i:0,score:0,miss:[]};ask();
+}
+function ask(){
+  const q=R.qs[R.i];
+  $.innerHTML=`<button class="back" id="b">&larr; Quit</button>
+  <div class="bar"><i style="width:${R.i/R.qs.length*100}%"></i></div>
+  <p class="q">${esc(SECTIONS[q.s])} &middot; ${R.i+1}/${R.qs.length}</p>
+  <div class="big">${esc(q.q)}</div>
+  <div>${q.opts.map((o,k)=>`<button class="opt" data-k="${k}">${esc(o)}</button>`).join("")}</div><div id="fb"></div>`;
+  document.getElementById("b").onclick=home;
+  $.querySelectorAll(".opt").forEach(b=>b.onclick=()=>pick(+b.dataset.k));
+}
+function pick(k){
+  const q=R.qs[R.i],right=k===q.ans,last=R.i===R.qs.length-1;
+  $.querySelectorAll(".opt").forEach((b,j)=>{b.disabled=true;if(j===q.ans)b.classList.add("ok");else if(j===k)b.classList.add("bad")});
+  if(right)R.score++;else R.miss.push(q);
+  document.getElementById("fb").innerHTML=`<div class="fb"><b style="color:var(${right?"--ok":"--bad"})">${right?"Correct!":"Not quite."}</b><br>${esc(q.e)}</div>
+  <button class="btn" id="nx">${last?"See results":"Next"}</button>`;
+  document.getElementById("nx").onclick=()=>last?finish():(R.i++,ask());
+  document.getElementById("nx").scrollIntoView({block:"nearest"});
+}
+function finish(){
+  const pct=Math.round(R.score/R.qs.length*100);
+  if(R.key!=null&&(S.best[R.key]==null||pct>S.best[R.key])){S.best[R.key]=pct;save()}
+  $.innerHTML=`<div class="bar"><i style="width:100%"></i></div><p class="q center">${esc(R.title)}</p>
+  <div class="score">${pct}%</div><p class="center sub">${R.score} of ${R.qs.length} correct.</p>`+
+  (R.miss.length?`<h2>To review</h2>`+R.miss.map(q=>`<div class="card miss"><b>${esc(q.q)}</b><br>Answer: ${esc(q.a)}<br><span style="color:var(--mute)">${esc(q.e)}</span></div>`).join(""):"")+
+  `<div class="row" style="margin-top:16px"><button class="btn" id="again">Try again</button><button class="btn ghost" id="hm">All topics</button></div>`;
+  document.getElementById("hm").onclick=home;
+  document.getElementById("again").onclick=()=>start(R.title,R.pool,R.key,R.n);
+  scrollTo(0,0);
+}
+home();
+</script>
+</body>
+</html>
