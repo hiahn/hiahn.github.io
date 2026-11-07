@@ -705,7 +705,8 @@ function home(){
   <div style="height:8px"></div>`+
   L.map((l,i)=>(l.h?`<h2 style="margin-top:20px">${esc(l.h)}</h2>`:"")+`<button class="card lesson" data-i="${i}"><span class="n">${l.n}</span>
     <span class="t">${esc(l.t)}<small>${l.min?l.min+" min &middot; ":""}${l.x.length} expressions</small></span>
-    ${S.best[i]!=null?`<span class="badge">${S.best[i]}%</span>`:""}</button>`).join("");
+    ${S.best[i]!=null?`<span class="badge">${S.best[i]}%</span>`:""}</button>`).join("")+
+  `<p class="center" style="margin-top:24px"><button class="back" id="upd" style="font-weight:500">Update app (load latest version)</button></p>`;
   $.querySelectorAll(".lesson").forEach(b=>b.onclick=()=>lesson(+b.dataset.i));
   document.getElementById("mix").onclick=()=>startQuiz("Mixed quiz",build(allX(),pairsAll(),15),null);
   document.getElementById("fcAll").onclick=()=>cards("All lessons",allX(),null);
@@ -714,6 +715,7 @@ function home(){
   document.getElementById("prog").onclick=dash;
   document.getElementById("bvp").onclick=bvpView;
   document.getElementById("llm").onclick=llmView;
+  document.getElementById("upd").onclick=refreshApp;
   scrollTo(0,0);
 }
 const bvpCards=items=>items.map(p=>`<div class="card"><div class="bp"><div class="b"><small>Beginner</small>${esc(p[0])}</div>
@@ -916,7 +918,17 @@ function cards(title,items,back){
   show();scrollTo(0,0);
 }
 home();
-if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+if('serviceWorker' in navigator&&location.protocol.startsWith('http')){
+  // reload once when a new version takes over, so the installed app picks up updates
+  const had=!!navigator.serviceWorker.controller;let reloaded=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!reloaded){reloaded=true;location.reload()}});
+  navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+}
+async function refreshApp(){
+  try{const rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(r=>r.unregister()));
+    const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}catch(e){}
+  location.reload();
+}
 </script>
 </body>
 </html>
