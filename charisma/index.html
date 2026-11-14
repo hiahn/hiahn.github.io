@@ -607,11 +607,92 @@ const LQ=[
 {s:4,q:"What often dominates cost per request?",a:"Long prompts (input tokens, RAG context)",w:["Network egress","GPU driver version","The number of GPUs in the data center"],e:"Count input + output tokens plus retries, RAG context and tool calls. Track p50 and p95, and ideally cost per successful task."}
 ];
 
+/* Uber surge pricing system design quiz, from the user's study guide (its numbers are assumptions, not Uber facts) */
+const SG_SECTIONS=["Requirements and capacity","H3 and cell size","Architecture","Surge calculator","Failure handling","Regulatory zones","Follow-up questions","Interview delivery"];
+const SG=[
+// 0 Requirements and capacity
+{s:0,q:"How does the guide say to state the freshness requirement?",a:"Event to published multiplier within 60 s at P99, as end-to-end staleness",w:["Pipeline latency under 5 s on average","Compute finishes within 30 s at P50","The multiplier is refreshed every 60 s, whatever the delay"],e:"The 30 s window hop plus under 5 s of compute and publish gives the 60 s target. Say it as end-to-end staleness, not just pipeline latency."},
+{s:0,q:"What should the system do when it is stale or down?",a:"Fail safe toward 1.0x",w:["Hold the last value indefinitely","Block new bookings","Jump to the maximum surge so drivers stay online"],e:"Overcharging riders is worse than losing some revenue."},
+{s:0,q:"What read latency should the pricing service get when it reads a multiplier?",a:"Under 10 ms at P99",w:["Under 500 ms at P50","Under 1 s at P99","Under 60 s at P99"],e:"Surge is on the quote path, so reads must be fast. They come from Redis plus a local cache, so they survive a pipeline outage."},
+{s:0,q:"1.5M concurrent drivers each ping every 4 s. About how many pings per second is that?",a:"About 375K",w:["About 37.5K","About 1.5M","About 6M"],e:"1.5M ÷ 4 s ≈ 375K pings/s, about 37 MB/s at roughly 100 B each."},
+{s:0,q:"About 150K active H3 cells with about 200 B of state each. How much state is that in total?",a:"About 30 MB",w:["About 30 GB","About 300 MB","About 3 TB"],e:"The state is tiny and fits in memory. The hard parts are ingest throughput, freshness, correctness of the signal and graceful failure, not storage."},
+{s:0,q:"Which clarifying question early sets up the regulatory answer?",a:"Are there legal limits on surge that vary by city or country?",w:["Which cloud provider will we use?","How many drivers does each city have?","Should drivers see the multiplier?"],e:"Asking about legal limits early sets up the regulatory deep dive in the guide's section 6."},
+// 1 H3 and cell size
+{s:1,q:"Why use H3 hexagons for surge cells?",a:"Every neighbor is the same distance away, so spatial smoothing is clean and unbiased",w:["Hexagons nest perfectly inside their parent cells","Hexagon edges line up with city boundaries","Hexagons need no lookup table, unlike every other grid"],e:"Squares have two kinds of neighbors (edge and diagonal), so smoothing over them is uneven. The H3 caveats are that children are not perfectly nested and that cell edges ignore legal boundaries."},
+{s:1,q:"Which H3 resolution is the default surge cell, roughly a neighborhood?",a:"Resolution 8 (about 0.46 km edge, about 0.74 km²)",w:["Resolution 7 (about 1.2 km edge)","Resolution 9 (about 0.17 km edge)","Resolution 10 (about 0.07 km edge)"],e:"Resolution 7 is a fallback roll-up for sparse cells and suburbs. Resolution 9 is for dense cores, airports and stadiums. Resolution 10 is for exact border handling and pickup-point lookups."},
+{s:1,q:"How many cells does gridDisk(cell, 2) return?",a:"19",w:["12","13","25"],e:"gridDisk(cell, 1) returns 7 cells (the center plus its 6 neighbors). With k = 2 it is 19. It was called kRing in H3 v3."},
+{s:1,q:"What is the trade-off of making surge cells smaller?",a:"They react faster to local spikes but have noisy, sparse counts and create price cliffs",w:["They are more stable but blur real shortages","They need no neighbor blending","They remove the need for policy checks at borders"],e:"Larger cells are stable but blur real shortages and are unfair at the edges. The production answer is adaptive: compute at resolution 8 and borrow from the parent or from neighbors when the sample is too small."},
+{s:1,q:"Which function fills a jurisdiction polygon with cells?",a:"polygonToCells (polyfill in H3 v3)",w:["gridDisk (kRing in v3)","cellToParent","latLngToCell (geoToH3 in v3)"],e:"This is how a city or jurisdiction boundary becomes a set of cells."},
+{s:1,q:"What is a drawback of H3 compared with S2, according to the guide?",a:"Children are not perfectly nested in the parent, and 12 pentagons per resolution have 5 neighbors",w:["Neighbors are at two different distances","It distorts badly near the poles","Adjacent areas can have unrelated prefixes at boundaries"],e:"Those other drawbacks belong to square grids and geohash. H3's advantages are uniform neighbor distance, hierarchical resolutions, open source and fast point-to-cell."},
+// 2 Architecture
+{s:2,q:"What is Kafka's role in the surge pipeline?",a:"A durable, replayable event buffer that decouples producers from consumers",w:["Serving the latest multiplier with sub-millisecond reads","Computing the multiplier from windowed stats","Storing compliance audit records permanently"],e:"Kafka allows replay after a crash and fan-out to other consumers. Its cost is operational overhead."},
+{s:2,q:"What does Flink do in the pipeline?",a:"Holds state and computes the multiplier with event-time windows, joins and broadcast state",w:["Serves reads to the pricing service","Stores the policy approval workflow","Buffers raw events for replay"],e:"Flink offers low latency, exactly-once state and handling of late data, at the cost of specialist skills."},
+{s:2,q:"Why can Redis hold only derived data?",a:"It is in-memory and volatile, and Flink can regenerate the data from Kafka",w:["It cannot store versions or timestamps","It is slower than DynamoDB","It cannot be replicated"],e:"Redis gives very fast key-value reads and easy replicas. Durable but slower alternatives are DynamoDB or Cassandra."},
+{s:2,q:"What does every published multiplier carry, so consumers can judge freshness?",a:"A version and a timestamp",w:["A signed token","The rider's id","The previous multiplier only"],e:"The guide's design principles: computation is separate from serving, derived data is disposable, every value is versioned and timestamped, and policy is data, enforced in two places."},
+{s:2,q:"Why are driver events keyed by driver id in Kafka?",a:"So each driver's events stay in order",w:["So each H3 cell lands on one partition","So the policy topic can be compacted","To balance load by city"],e:"Demand events are keyed by request id instead."},
+{s:2,q:"What is the downside of the pricing service's 5 to 10 s local cache?",a:"A few seconds of extra staleness",w:["Higher Redis read latency","Weaker auditing","It breaks version monotonicity"],e:"The benefits are fewer Redis calls, absorbing read bursts, and surviving a short Redis outage."},
+// 3 Surge calculator
+{s:3,q:"In m = max(1, D / (S × κ)), what is κ (kappa)?",a:"The target demand-to-supply ratio the marketplace can serve at normal service levels",w:["The price elasticity of demand","The smoothing weight for neighbor cells","The maximum multiplier allowed"],e:"D is demand in the cell and S is supply. The formula is deliberately called naive."},
+{s:3,q:"Which is NOT listed as a failure of the naive formula?",a:"It uses too much memory per cell",w:["Division by zero or explosion when supply is 0 or 1","Price cliffs at cell borders because neighbors are ignored","It flickers every window because it has no memory"],e:"The listed failures are: division by zero, noise from small counts, price cliffs, flicker, undefined signals (pings are not drivers) and no caps or sanity guard."},
+{s:3,q:"How should supply (S) be counted?",a:"Distinct available drivers in the cell, not on a trip and recently pinged",w:["Raw GPS pings","All online drivers, including those on trips","App opens in the cell"],e:"Counting raw pings overcounts drivers who ping more often. Supply is best held as a gauge, updated when a driver changes cell or goes silent for 30 s."},
+{s:3,q:"How should demand (D) be measured?",a:"As a windowed rate, such as 2 minutes of deduplicated requests and app opens re-evaluated every 30 s",w:["As a gauge of current open apps","As a lifetime count per cell","As the number of rides completed"],e:"Count deduplicated ride requests plus app opens with a destination set. Counting retries by the same rider as new demand is a common mistake."},
+{s:3,q:"Why must spatial blending use a market mask?",a:"Drivers licensed in one regulatory market cannot serve pickups in another, so supply must not leak across that boundary",w:["Neighbor cells have different H3 resolutions","It reduces Flink message volume","It lets the cap be skipped for border cells"],e:"The example weights are (1, 0.5, 0.25) by ring distance and are tunable. Blending stops an empty cell next to a full one from showing a wild price."},
+{s:3,q:"What does the prior in r = (D' + a) / (S' + b) do?",a:"It keeps r near its normal value when there is little data, while real counts dominate as they grow",w:["It prevents the multiplier from falling below 1.0x","It converts pressure to a price","It removes the need for damping"],e:"The pseudo-counts a and b come from the historical baseline for that market and hour of the week."},
+{s:3,q:"Why is damping used when the multiplier is computed?",a:"Surge feeds back on itself: a high price pulls drivers in, surge drops, drivers leave, and surge returns",w:["Redis cannot handle fast updates","To make audit logs smaller","To satisfy the checkpoint interval"],e:"Let it rise faster than it falls, round to a step such as 0.1x, and require a minimum dwell time. The cost is a short lag behind true conditions."},
+{s:3,q:"What should surge track, according to the guide?",a:"Shortage, not unusualness",w:["Total demand compared with last week","The weather forecast","The number of app opens"],e:"A busy Friday with plenty of drivers needs no surge. Use history as a prior, a baseline and a forecast input."},
+{s:3,q:"What is the recommended way to combine rules and ML?",a:"Rules as the safe core, with an ML forecast that adjusts D' and sits behind the same caps and policy layer",w:["End-to-end ML price model replacing the rules","ML only for the audit log","Rules only, with no forecasting ever"],e:"End-to-end ML is potentially the most efficient but is hard to audit and risky under price-gouging rules."},
+{s:3,q:"Which step comes immediately before applying policy in the calculator?",a:"Damping against the previous value",w:["Spatial blending with neighbors","Applying the prior","Writing the audit record"],e:"Order: window stats, neighbor blend (masked by market), prior, pressure to price, damp, policy, then write value, version, timestamp and audit record."},
+// 4 Failure handling
+{s:4,q:"What happens when the Flink job crashes?",a:"It restarts, restores state and Kafka offsets from the last checkpoint, and replays the last few seconds",w:["It rebuilds state from Redis","Failed events are replayed from a dead-letter queue","It waits for a manual restart"],e:"Checkpoints are taken every 10 to 30 s. Meanwhile riders keep reading the last published value from Redis. Nothing half-calculated is published."},
+{s:4,q:"Why does a replay after a crash give the same results?",a:"Windows use event time with watermarks, so the calculation is a pure function of its inputs",w:["Redis rejects duplicate keys","Kafka deduplicates on the broker","Replays are skipped when state exists"],e:"Policy version is kept in checkpointed state so that replay gives the same answer."},
+{s:4,q:"How do Redis writes stay idempotent?",a:"Each write carries a version equal to the window end time and is applied only if it is newer (compare-and-set)",w:["Every write uses a random UUID key","Writes are batched hourly","Redis deduplicates by value"],e:"The guide suggests a small Lua script. Replays neither duplicate nor roll back a value."},
+{s:4,q:"What is wrong with 'Redis TTL of 120 s so the old value stays'?",a:"A TTL deletes the key at 120 s, so the old value does not stay",w:["TTLs slow down Redis reads","120 s is too long for riders","TTLs cannot be set on hashes"],e:"The fix: a long TTL (for example 15 minutes) for garbage collection only, with computed_at and version stored in the value and freshness decided by the pricing service."},
+{s:4,q:"What is a dead-letter queue for?",a:"Poison or malformed events that cannot be processed",w:["Recovering events lost in a Flink crash","Storing slow events for replay","Holding policy changes for approval"],e:"Crash recovery is checkpoint plus replay. Validate events and route bad ones to the DLQ instead of crashing the job."},
+{s:4,q:"What should the pipeline alert on?",a:"Freshness: the age of the oldest published cell, consumer lag and watermark lag",w:["Whether the Flink job has failed","CPU usage of the Redis cluster","The number of drivers online"],e:"The job can be up while the data is still stale because of backpressure or lag, so alert on the symptom, not the cause."},
+{s:4,q:"A cell's value is 2.0x and is 210 s old (T1 = 120 s, T2 = 300 s). What effective multiplier does the pricing service use?",a:"1.5x",w:["2.0x","1.0x","1.25x"],e:"m_eff = 1 + (m − 1) × max(0, 1 − (age − T1) / (T2 − T1)) = 1 + 1 × (1 − 90/180) = 1.5. Up to 2 minutes the value is used as is; beyond 5 minutes, or if missing, it is 1.0x."},
+{s:4,q:"Which stale-data policy does the guide recommend?",a:"Hold the value briefly, then decay to 1.0x",w:["Fail open to 1.0x immediately","Hold the last value indefinitely","Switch to the regional maximum"],e:"It rides out short outages and ends safely. Holding indefinitely risks overcharging long after the shortage ends."},
+{s:4,q:"Why use per-cell versioned writes instead of an atomic snapshot?",a:"They are simple and each cell is mostly independent, so a partially updated set is acceptable",w:["A snapshot cannot be versioned","Redis cannot hold generation numbers","Snapshots are faster to read"],e:"A generation pointer gives a consistent snapshot but needs two reads per quote and adds a failure mode."},
+{s:4,q:"How should GPS spoofing or drivers gaming supply be handled?",a:"Count distinct drivers, check movement plausibility, and limit one driver's influence",w:["Ignore driver supply signals","Raise the cap in affected cells","Throttle Kafka partitions"],e:"The trade-off: false positives can penalize honest drivers."},
+// 5 Regulatory zones
+{s:5,q:"What is the guide's core sentence for regulatory zones?",a:"Separate the market signal from the legal policy",w:["Run one global job with a rule per city","Hard-code caps in the calculator","Let the pricing service ignore Flink's value"],e:"Flink computes a jurisdiction-agnostic multiplier, a data-driven policy layer applies the rules, and the pricing service enforces the authoritative limit at quote time."},
+{s:5,q:"How does policy reach the Flink job?",a:"As a versioned bundle on a compacted Kafka topic, consumed as broadcast state",w:["Through a per-event remote lookup service","Baked into the job at deploy time","Via a Redis hash polled every second"],e:"Every parallel task gets the whole regional table (a few MB), and a policy change takes effect without restarting the job."},
+{s:5,q:"What multiplier does the published value use for a border cell that straddles two jurisdictions?",a:"The most restrictive rule of the overlapping jurisdictions",w:["The average of the two caps","The less restrictive rule","Whichever jurisdiction has more area"],e:"At quote time the exact pickup point is checked, so the quote can be more precise."},
+{s:5,q:"What does the pricing service do at quote time?",a:"Resolves the jurisdiction of the exact pickup point and clamps the multiplier with the same policy library",w:["Trusts the published value without checks","Calls Flink for a fresh calculation","Uses the cell's centroid for every rider"],e:"Interior cells are a table lookup. Border cells use point-in-polygon against a spatial index such as an R-tree or S2, with caching."},
+{s:5,q:"What happens when the jurisdiction is unknown, a policy bundle is missing, or a rule has expired?",a:"No surge: not knowing the rule is treated as the most restrictive case",w:["Use the global default cap","Use the last known rule forever","Block the booking"],e:"Fail safe applies to policy as well as to freshness."},
+{s:5,q:"Why does the guide say there is no 'global Flink job'?",a:"Each region runs its own Kafka, Flink and Redis for isolation, lower latency and data residency",w:["Flink cannot run in several regions","A global job would use too much memory","Regulators require one job per city"],e:"The cost: more deployments to operate and a shared control plane for config and versions."},
+{s:5,q:"How is the hex-to-jurisdiction map built?",a:"Offline, by running polygonToCells at resolution 8 for each jurisdiction and flagging cells that fall in two or more polygons as border cells",w:["At runtime with a point-in-polygon check on every event","From driver GPS traces","By hashing city names into cells"],e:"Border cells also keep the polygons (or resolution-10 children) for exact checks."},
+{s:5,q:"Which combination of enforcement points is recommended?",a:"Broadcast policy in Flink plus a quote-time check, both using one shared policy library",w:["Quote-time enforcement only","A separate Flink job per jurisdiction","A remote lookup service for every event"],e:"Quote-time only would let published values and driver heatmaps show uncapped numbers. A remote lookup per event means hundreds of thousands of calls per second and a new dependency that can fail the pipeline."},
+{s:5,q:"Which invariant test should run on every build?",a:"The final multiplier never exceeds the applicable cap, for any input",w:["The multiplier is always above 1.0x","Every cell surges at least once a day","Redis and Flink always return the same value"],e:"Also golden tests per jurisdiction, replay of historical traffic against a new bundle, and review plus legal sign-off with a dry-run diff before staged rollout. Treat caps as configuration, never as code."},
+// 6 Follow-up questions
+{s:6,q:"Why Flink and not Redis sliding-window counters?",a:"Flink offers event-time windows, exactly-once state and replay from Kafka; Redis would only be the serving layer",w:["Redis cannot store counters","Flink is cheaper to run","Redis lacks replicas"],e:"Redis counters are simpler but lose replay and event-time correctness, and make the calculator poll a second system."},
+{s:6,q:"How do you handle a hot cell, such as a stadium emptying?",a:"Pre-aggregate locally before the keyed shuffle (two-phase aggregation) or salt the key, and use resolution 9 for known venues",w:["Increase the cap for that cell","Drop events from the cell","Shard Redis by cell id"],e:"Skew only matters if one key's work is large, and per-cell counts are tiny. Trade-off: two-phase aggregation adds a stage."},
+{s:6,q:"What do you do for cold-start or empty cells?",a:"Blend with neighbors, fall back to the resolution-7 parent, and use the prior from the historical baseline",w:["Always publish 1.0x for them","Copy the surge of the busiest cell in the city","Wait until enough data arrives before publishing anything"],e:"The trade-off: more smoothing hides real micro-shortages."},
+{s:6,q:"Does the rider pay the surge they saw?",a:"Yes. The quote carries the multiplier, version and an expiry (for example 2 minutes), and the trip uses the quoted price",w:["No, the price is recomputed at pickup","Only if the multiplier increased","Only for the first product shown"],e:"A stale quote can be wrong in the company's disfavor, and the short expiry bounds the loss."},
+{s:6,q:"How does the read path handle peak load?",a:"Keys like surge:{hex}, pipelined multi-gets, a 5 to 10 s in-process cache, and Redis Cluster with replicas",w:["A single Redis primary with no cache","Reads go directly to Flink state","A relational database with indexes"],e:"The local cache adds a few seconds of staleness."},
+{s:6,q:"How do you support different products such as UberX, XL and Black?",a:"Extend the key to cell and product, with supply being the drivers eligible for that product",w:["Run a separate pipeline per product","Use one multiplier for all products","Apply a fixed markup to the base multiplier"],e:"The cost is multiplying state and writes by the number of products. Policy can allow a Black driver to serve X but not the reverse."},
+{s:6,q:"How do you get exactly-once effects end to end?",a:"Flink checkpoints give exactly-once state; the Redis sink is at-least-once but idempotent through version numbers",w:["Kafka transactions on the Redis sink","Disabling retries","Writing each value to two Redis clusters"],e:"This needs a compare-and-set script on every write."},
+{s:6,q:"How do you run experiments on a pricing change?",a:"Replay historical data, run in shadow mode, roll out by market, and use switchback tests",w:["Ordinary rider-level A/B tests","Release globally and monitor revenue","Test only on drivers' apps"],e:"Riders and drivers in one market interact, so ordinary A/B tests are contaminated. Switchbacks (alternating time windows or regions) need more time to reach significance."},
+{s:6,q:"Why not compute surge on the request path?",a:"It needs aggregated state across thousands of events, so it would be slow and expensive; the request path should be a lookup",w:["Regulators forbid it","Redis would be overloaded","Flink cannot answer on demand"],e:"The trade-off: precomputed values are always slightly stale."},
+{s:6,q:"Lambda or Kappa architecture for this system?",a:"Kappa: a single streaming path, with reprocessing by replaying Kafka",w:["Lambda, because batch is more accurate","Neither; use only request-time computation","Lambda, because it needs no replay"],e:"Use batch only for offline model training and backtests. Replay needs long Kafka retention or a data-lake archive."},
+// 7 Interview delivery
+{s:7,q:"How should you narrate the architecture diagram?",a:"Follow one person through the system, naming the numbers and the failure behavior at each hop",w:["Point at each box and define it","Read the data contracts aloud","List every technology alternative first"],e:"A narrative turns a static picture into a system the interviewer can watch run, and leads them to failure and regulation questions on your terms."},
+{s:7,q:"What should the first five minutes of a 45-minute answer accomplish?",a:"Clarify scope and state functional and non-functional requirements, including asking about regulation and failure behavior",w:["Draw the full architecture","Derive the multiplier formula","Discuss Kafka alternatives"],e:"Then: capacity estimates (5 to 10), diagram (10 to 20), formula (20 to 30), failure modes (30 to 38), regulatory zones (38 to 43), trade-offs and next steps (43 to 45)."},
+{s:7,q:"What is wrong with saying kRing(hex_id, 1) returns the 6 surrounding hexagons?",a:"It returns 7 cells, including the center, and in H3 v4 the function is gridDisk",w:["It returns 12 cells","It returns only the 6 pentagons","kRing is correct in every H3 version"],e:"Say gridDisk(cell, 1) for 7 cells."},
+{s:7,q:"What is the right way to state 'P99 under 5 s for the pipeline and 60 s for recalculation'?",a:"State the end-to-end staleness target and the window hop separately",w:["Merge them into a single latency number","Quote only the 5 s figure","Quote only the 60 s figure"],e:"The two are easy to confuse."},
+{s:7,q:"What does the 'L' in STAR-L stand for, and how do you sharpen it?",a:"Learning: add a cost you accepted and what you would do differently",w:["Latency: add the performance numbers","Leadership: add your title","Lessons for the interviewer: add a question for them"],e:"For example, involving the operations owner before building the prototype."},
+{s:7,q:"Which two habits raise a behavioral answer's score, according to the guide?",a:"Acknowledge the trade-off you accepted, and show how you changed someone's mind rather than only that you were right",w:["Mention team size and show a deck","Avoid mentioning disagreements","Quote revenue numbers and skip the learning"],e:"In the example, Kafka added operational work and ordering and delivery-semantics concerns."},
+{s:7,q:"How should you treat a specific city's surge cap in an interview?",a:"As configuration owned by policy and legal teams: say 'for example, a market might cap at X'",w:["Quote the exact figure confidently","Hard-code it in the calculator","Avoid mentioning caps"],e:"The guide could not verify the original post's New York cap."},
+{s:7,q:"Where should roughly half of your preparation time go?",a:"Failure modes, regulation and multi-region complexity",w:["The happy-path diagram","Memorizing H3 resolutions","Behavioral stories only"],e:"The happy path is the baseline. Practice with someone who interrupts every arrow with 'but what about...'."}
+];
+const DECKS=[
+{key:"llm",title:"LLM Inference Quiz",sub:"latency, batching, memory, scaling, ops and cost.",sections:LQ_SECTIONS,qs:LQ},
+{key:"surge",title:"Uber Surge Pricing: System Design",sub:"H3 cells, Flink, Redis, failure modes and regulation. Based on your study guide, whose numbers are assumptions, not Uber facts.",sections:SG_SECTIONS,qs:SG}
+];
 /* ---------- storage ---------- */
 const KEY="charisma-quiz-v1";
 let S={best:{},weak:{}};
 try{S=Object.assign(S,JSON.parse(localStorage.getItem(KEY)||"{}"))}catch(e){}
-S.stats=S.stats||{};S.llm=S.llm||{};S.days=S.days||{};S.hist=S.hist||[];
+S.stats=S.stats||{};S.llm=S.llm||{};S.surge=S.surge||{};S.days=S.days||{};S.hist=S.hist||[];
 // lesson 15 expressions were replaced; drop stats tied to the old ones
 if(!S.m2){["14.1","14.4","14.7","14.8"].forEach(k=>{delete S.stats[k];delete S.weak[k]});S.m2=1;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
@@ -700,7 +781,7 @@ function home(){
   <div class="row" style="margin-top:10px"><button class="btn ghost" id="fcAll">Flashcards</button>
   <button class="btn ghost" id="prog">Progress</button>
   <button class="btn ghost" id="bvp">Beginner vs Pro</button>
-  <button class="btn ghost" id="llm">LLM Inference Quiz</button>
+  ${DECKS.map(d=>`<button class="btn ghost" data-deck="${d.key}">${esc(d.title)}</button>`).join("")}
   <button class="btn ghost" id="timed">Timed challenge${S.bestTimed!=null?" (best "+S.bestTimed+"%)":""}</button></div>
   <div style="height:8px"></div>`+
   L.map((l,i)=>(l.h?`<h2 style="margin-top:20px">${esc(l.h)}</h2>`:"")+`<button class="card lesson" data-i="${i}"><span class="n">${l.n}</span>
@@ -714,7 +795,7 @@ function home(){
   document.getElementById("weak").onclick=weakQuiz;
   document.getElementById("prog").onclick=dash;
   document.getElementById("bvp").onclick=bvpView;
-  document.getElementById("llm").onclick=llmView;
+  $.querySelectorAll("[data-deck]").forEach(b=>b.onclick=()=>deckView(DECKS.find(d=>d.key===b.dataset.deck)));
   document.getElementById("upd").onclick=refreshApp;
   scrollTo(0,0);
 }
@@ -745,23 +826,23 @@ function bvpView(){
     q==="all"?bvpQuiz(BVP,"Beginner vs Pro"):bvpQuiz(BVP.filter(p=>p[3]===+q),"Beginner vs Pro: "+L[+q].t)});
   scrollTo(0,0);
 }
-function llmQuiz(title,pool,key,n){
+function deckQuiz(d,title,pool,key,n){
   const qs=shuf(pool).slice(0,n||pool.length).map(q=>{
     const opts=shuf([q.a,...q.w]);
-    return{id:null,kind:LQ_SECTIONS[q.s],text:q.q,opts,ans:opts.indexOf(q.a),exp:`<b>Answer:</b> ${esc(q.a)}<br>${esc(q.e)}`}});
-  startQuiz(title,qs,null,false,llmView);Q.llmKey=key;
+    return{id:null,kind:d.sections[q.s],text:q.q,opts,ans:opts.indexOf(q.a),exp:`<b>Answer:</b> ${esc(q.a)}<br>${esc(q.e)}`}});
+  startQuiz(title,qs,null,false,()=>deckView(d));Q.deck=d.key;Q.deckKey=key;
 }
-function llmView(){
-  $.innerHTML=`<button class="back" id="b">&larr; All lessons</button><h2>LLM Inference Quiz</h2>
-  <p class="sub">${LQ.length} questions on latency, batching, memory, scaling, ops and cost.</p>
-  <div class="row"><button class="btn" id="all">Full quiz (${LQ.length})</button><button class="btn ghost" id="q10">Quick 10</button></div>
+function deckView(d){
+  $.innerHTML=`<button class="back" id="b">&larr; All lessons</button><h2>${esc(d.title)}</h2>
+  <p class="sub">${d.qs.length} questions on ${esc(d.sub)}</p>
+  <div class="row"><button class="btn" id="all">Full quiz (${d.qs.length})</button><button class="btn ghost" id="q10">Quick 10</button></div>
   <div style="height:8px"></div>`+
-  LQ_SECTIONS.map((t,i)=>`<button class="card lesson" data-i="${i}"><span class="n">${i+1}</span>
-    <span class="t">${esc(t)}<small>${LQ.filter(q=>q.s===i).length} questions</small></span>${S.llm[i]!=null?`<span class="badge">${S.llm[i]}%</span>`:""}</button>`).join("");
+  d.sections.map((t,i)=>`<button class="card lesson" data-i="${i}"><span class="n">${i+1}</span>
+    <span class="t">${esc(t)}<small>${d.qs.filter(q=>q.s===i).length} questions</small></span>${S[d.key][i]!=null?`<span class="badge">${S[d.key][i]}%</span>`:""}</button>`).join("");
   document.getElementById("b").onclick=home;
-  document.getElementById("all").onclick=()=>llmQuiz("LLM Inference Quiz",LQ,"all");
-  document.getElementById("q10").onclick=()=>llmQuiz("LLM Inference: Quick 10",LQ,null,10);
-  $.querySelectorAll(".lesson").forEach(b=>b.onclick=()=>llmQuiz("LLM Inference: "+LQ_SECTIONS[+b.dataset.i],LQ.filter(q=>q.s===+b.dataset.i),+b.dataset.i));
+  document.getElementById("all").onclick=()=>deckQuiz(d,d.title,d.qs,"all");
+  document.getElementById("q10").onclick=()=>deckQuiz(d,d.title+": Quick 10",d.qs,null,10);
+  $.querySelectorAll(".lesson").forEach(b=>b.onclick=()=>deckQuiz(d,d.title+": "+d.sections[+b.dataset.i],d.qs.filter(q=>q.s===+b.dataset.i),+b.dataset.i));
   scrollTo(0,0);
 }
 function weakQuiz(){
@@ -808,7 +889,7 @@ function dash(){
   document.getElementById("b").onclick=home;
   $.querySelectorAll(".dl").forEach(b=>b.onclick=()=>lesson(+b.dataset.i));
   const wk=document.getElementById("wk");if(wk)wk.onclick=weakQuiz;
-  document.getElementById("rs").onclick=()=>{if(confirm("Erase all scores, weak spots and history?")){S={best:{},weak:{},stats:{},days:{},hist:[],llm:{}};save();home()}};
+  document.getElementById("rs").onclick=()=>{if(confirm("Erase all scores, weak spots and history?")){S={best:{},weak:{},stats:{},days:{},hist:[],llm:{},surge:{}};save();home()}};
   scrollTo(0,0);
 }
 function lesson(i){
@@ -875,7 +956,7 @@ function finish(){
   const pct=Math.round(Q.score/Q.qs.length*100);
   if(Q.timed&&Q.lesson==null&&(S.bestTimed==null||pct>S.bestTimed)){S.bestTimed=pct;save()}
   if(!Q.timed&&Q.lesson!=null&&(S.best[Q.lesson]==null||pct>S.best[Q.lesson])){S.best[Q.lesson]=pct;save()}
-  if(Q.llmKey!=null&&(S.llm[Q.llmKey]==null||pct>S.llm[Q.llmKey]))S.llm[Q.llmKey]=pct;
+  if(Q.deck&&Q.deckKey!=null&&(S[Q.deck][Q.deckKey]==null||pct>S[Q.deck][Q.deckKey]))S[Q.deck][Q.deckKey]=pct;
   S.hist.push({t:Date.now(),title:Q.title,pct});S.hist=S.hist.slice(-50);save();
   const msg=pct===100?"Perfect! You're ready to use these.":pct>=70?"Great job. Review the misses below.":"Keep practising. Re-read the lesson and try again.";
   $.innerHTML=`<div class="bar"><i style="width:100%"></i></div><p class="q center">${esc(Q.title)}</p>
