@@ -684,15 +684,81 @@ const SG=[
 {s:7,q:"How should you treat a specific city's surge cap in an interview?",a:"As configuration owned by policy and legal teams: say 'for example, a market might cap at X'",w:["Quote the exact figure confidently","Hard-code it in the calculator","Avoid mentioning caps"],e:"The guide could not verify the original post's New York cap."},
 {s:7,q:"Where should roughly half of your preparation time go?",a:"Failure modes, regulation and multi-region complexity",w:["The happy-path diagram","Memorizing H3 resolutions","Behavioral stories only"],e:"The happy path is the baseline. Practice with someone who interrupts every arrow with 'but what about...'."}
 ];
+/* 49 idioms from the BellaTalk "50 Idioms" ebook (no. 37 is missing from the PDF). Meanings, examples and Korean glosses are reworded.
+   [idiom, group, meaning, example, part of the example to blank out, Korean gloss] */
+const IDIOM_SECTIONS=["Feelings and attitude","Talking and communicating","Work and effort","People and judgement","Life, luck and money"];
+const IDIOMS=[
+["keep your chin up",0,"stay positive when things are hard","The exam was tough, but keep your chin up; you can retake it.","keep your chin up","힘내, 기운 내"],
+["a couch potato",0,"someone who sits around, usually watching TV, and does little else","After a week of binge-watching, I felt like a total couch potato.","couch potato","TV만 보며 빈둥대는 사람"],
+["a storm in a teacup",0,"a lot of fuss about something unimportant","The argument over who left the lights on was a storm in a teacup.","storm in a teacup","사소한 일에 대한 야단법석"],
+["a blessing in disguise",0,"something that seems bad at first but turns out to be good","Losing that job was a blessing in disguise; it pushed me to start my own business.","blessing in disguise","전화위복"],
+["feel like a million bucks",0,"feel (or look) fantastic","After a long sleep and a good run, I feel like a million bucks.","feel like a million bucks","기분이 최고다"],
+["get your act together",0,"start behaving in a more organized, responsible way","You keep missing deadlines. It's time to get your act together.","get your act together","정신 차리고 제대로 하다"],
+["pull yourself together",0,"calm down and control your emotions","I was shaking before the speech, but I pulled myself together and walked on stage.","pulled myself together","마음을 가다듬다"],
+["have a sweet tooth",0,"love sweet food","My brother has a sweet tooth; he always orders dessert first.","has a sweet tooth","단것을 좋아하다"],
+["get itchy feet",0,"feel a strong urge to travel or change your situation","After two years in the same office, I'm getting itchy feet.","getting itchy feet","떠나고 싶어 안달이 나다"],
+["I'm all ears",0,"I'm listening closely; go ahead and tell me","You have news about the trip? Go ahead, I'm all ears.","I'm all ears","귀 기울여 듣고 있어"],
+["beat around the bush",1,"avoid saying the main point directly","Stop beating around the bush and tell me what the doctor said.","beating around the bush","돌려 말하다"],
+["bang your head against a wall",1,"keep trying something that never works","Trying to convince him is like banging my head against a wall.","banging my head against a wall","소용없는 일을 계속 시도하다"],
+["ring a bell",1,"sound familiar","Her name rings a bell, but I can't remember where I've heard it.","rings a bell","어딘가 익숙하다"],
+["speak of the devil",1,"said when the person you were just talking about appears","We were just talking about you. Speak of the devil!","Speak of the devil","호랑이도 제 말 하면 온다"],
+["long story short",1,"to summarize without giving all the details","Long story short, we missed the train and walked home.","Long story short","간단히 말하면"],
+["actions speak louder than words",1,"what you do matters more than what you say","He promises to help every week, but actions speak louder than words.","actions speak louder than words","말보다 행동이 중요하다"],
+["break the ice",1,"ease the tension when people first meet","A quick joke is a good way to break the ice at a new job.","break the ice","어색한 분위기를 깨다"],
+["cut to the chase",1,"get to the main point quickly","I know you're busy, so I'll cut to the chase.","cut to the chase","본론으로 들어가다"],
+["take it with a pinch of salt",1,"don't believe it completely","He exaggerates a lot, so take his stories with a pinch of salt.","with a pinch of salt","곧이곧대로 믿지 않다"],
+["see eye to eye",1,"agree with someone","My sister and I rarely see eye to eye on politics.","see eye to eye","의견이 일치하다"],
+["it goes without saying",1,"it's obvious, so there's no need to say it","It goes without saying that you should lock the door when you leave.","It goes without saying","말할 필요도 없다"],
+["hit the books",2,"study hard","Finals start Monday, so I need to hit the books this weekend.","hit the books","열심히 공부하다"],
+["bite the bullet",2,"do something unpleasant that you can't avoid","I hate going to the dentist, but I'll bite the bullet and book an appointment.","bite the bullet","이를 악물고 해내다"],
+["face the music",2,"accept the consequences of what you did","He broke the window, so he has to face the music and tell his parents.","face the music","결과를 받아들이다"],
+["cut corners",2,"do something the cheapest or easiest way, lowering the quality","The builders cut corners, and now the roof leaks.","cut corners","대충 하다"],
+["find your feet",2,"get comfortable in a new situation","It took me a month to find my feet in the new city.","find my feet","새 환경에 적응하다"],
+["get your foot in the door",2,"get a first opportunity to enter a company or field","Taking a part-time job there was my way to get my foot in the door.","get my foot in the door","첫발을 들이다"],
+["burn your bridges",2,"damage a relationship so badly that you can't go back","Don't insult your old boss; you don't want to burn your bridges.","burn your bridges","돌아갈 길을 끊다"],
+["pull the plug",2,"stop or end something, such as a project","The company pulled the plug on the project after it lost money.","pulled the plug","중단하다"],
+["the ball is in your court",2,"it's your turn to decide or act","I've made my offer, so the ball is in your court.","the ball is in your court","이제 네 차례다"],
+["it takes two to tango",3,"both people share responsibility for a conflict","Don't blame only him for the fight; it takes two to tango.","it takes two to tango","손바닥도 마주쳐야 소리가 난다"],
+["let sleeping dogs lie",3,"don't bring up an old problem","The argument is over; let sleeping dogs lie.","let sleeping dogs lie","긁어 부스럼 만들지 마라"],
+["stab someone in the back",3,"betray someone who trusts you","She stabbed me in the back by telling the boss my secret.","stabbed me in the back","믿던 사람을 배신하다"],
+["cut somebody some slack",3,"be less strict or critical with someone","He's new here, so cut him some slack.","cut him some slack","너그럽게 봐주다"],
+["get out of hand",3,"become uncontrollable","The party got out of hand and the neighbors called the police.","got out of hand","통제 불능이 되다"],
+["give someone the benefit of the doubt",3,"believe someone when you can't be sure they're telling the truth","She says her phone died, and I'll give her the benefit of the doubt.","give her the benefit of the doubt","일단 믿어주다"],
+["sit on the fence",3,"avoid choosing a side","Everyone else has chosen, but he's still sitting on the fence.","sitting on the fence","중립을 지키며 결정을 못 하다"],
+["jump on the bandwagon",3,"join something because it's popular","Half the office jumped on the bandwagon when the new diet became trendy.","jumped on the bandwagon","유행을 따르다"],
+["break a leg",4,"good luck, especially before a performance","You're on stage in five minutes? Break a leg!","Break a leg","행운을 빌어"],
+["better late than never",4,"doing something late is better than not doing it at all","You finally sent the thank-you card? Well, better late than never.","better late than never","늦더라도 안 하는 것보단 낫다"],
+["the last straw",4,"the final problem that makes you lose patience","When he forgot our anniversary again, it was the last straw.","the last straw","참을 수 없게 만든 마지막 일"],
+["time flies",4,"time passes quickly","Is it December already? Time flies.","Time flies","시간이 빨리 간다"],
+["cross that bridge when we come to it",4,"deal with a problem only if and when it happens","What if it rains on the wedding day? We'll cross that bridge when we come to it.","cross that bridge when we come to it","그때 가서 생각하자"],
+["don't put all your eggs in one basket",4,"don't risk everything on a single thing","Apply to several schools. Don't put all your eggs in one basket.","put all your eggs in one basket","한 곳에 모든 걸 걸지 마라"],
+["come rain or shine",4,"no matter what the circumstances are","Come rain or shine, the market opens at eight.","Come rain or shine","무슨 일이 있어도"],
+["good things come to those who wait",4,"patience gets rewarded","The job offer took months, but good things come to those who wait.","good things come to those who wait","참고 기다리면 좋은 일이 온다"],
+["save for a rainy day",4,"keep money aside for hard times","I put a little aside each month to save for a rainy day.","save for a rainy day","어려울 때를 대비해 저축하다"],
+["in the red",4,"owing money; having a negative balance","The shop has been in the red since the summer.","in the red","적자 상태다"],
+["the sky's the limit",4,"there are no limits to what is possible","With this much talent, the sky's the limit.","the sky's the limit","가능성은 무한하다"]
+];
+function buildIdiomQs(){
+  const qs=[];
+  IDIOMS.forEach(([id,g,m,e,bl,ko],i)=>{
+    const same=IDIOMS.filter((_,j)=>j!==i&&IDIOMS[j][1]===g);
+    const pick=()=>shuf(same).slice(0,3);
+    const note=`<i>${esc(e)}</i> (${esc(ko)})`;
+    qs.push({s:g,q:`What does "${id}" mean?`,a:m,w:pick().map(x=>x[2]),e:`"${id}": ${m}.`,note});
+    qs.push({s:g,q:`Which idiom fits the blank? "${e.replace(bl,"_____")}"`,a:id,w:pick().map(x=>x[0]),e:`"${id}" means ${m}.`,note});
+  });
+  return qs;
+}
 const DECKS=[
 {key:"llm",title:"LLM Inference Quiz",sub:"latency, batching, memory, scaling, ops and cost.",sections:LQ_SECTIONS,qs:LQ},
-{key:"surge",title:"Uber Surge Pricing: System Design",sub:"H3 cells, Flink, Redis, failure modes and regulation. Based on your study guide, whose numbers are assumptions, not Uber facts.",sections:SG_SECTIONS,qs:SG}
+{key:"surge",title:"Uber Surge Pricing: System Design",sub:"H3 cells, Flink, Redis, failure modes and regulation. Based on your study guide, whose numbers are assumptions, not Uber facts.",sections:SG_SECTIONS,qs:SG},
+{key:"idioms",title:"50 Idioms Quiz",sub:"common English idioms: meanings and fill-in-the-blank. From your BellaTalk ebook (definitions and examples reworded; idiom 37 is missing from the PDF).",sections:IDIOM_SECTIONS,qs:[],init:buildIdiomQs,study:true}
 ];
 /* ---------- storage ---------- */
 const KEY="charisma-quiz-v1";
 let S={best:{},weak:{}};
 try{S=Object.assign(S,JSON.parse(localStorage.getItem(KEY)||"{}"))}catch(e){}
-S.stats=S.stats||{};S.llm=S.llm||{};S.surge=S.surge||{};S.days=S.days||{};S.hist=S.hist||[];
+S.stats=S.stats||{};S.llm=S.llm||{};S.surge=S.surge||{};S.idioms=S.idioms||{};S.days=S.days||{};S.hist=S.hist||[];
 // lesson 15 expressions were replaced; drop stats tied to the old ones
 if(!S.m2){["14.1","14.4","14.7","14.8"].forEach(k=>{delete S.stats[k];delete S.weak[k]});S.m2=1;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
@@ -829,20 +895,30 @@ function bvpView(){
 function deckQuiz(d,title,pool,key,n){
   const qs=shuf(pool).slice(0,n||pool.length).map(q=>{
     const opts=shuf([q.a,...q.w]);
-    return{id:null,kind:d.sections[q.s],text:q.q,opts,ans:opts.indexOf(q.a),exp:`<b>Answer:</b> ${esc(q.a)}<br>${esc(q.e)}`}});
+    return{id:null,kind:d.sections[q.s],text:q.q,opts,ans:opts.indexOf(q.a),exp:`<b>Answer:</b> ${esc(q.a)}<br>${esc(q.e)}${q.note?"<br>"+q.note:""}`}});
   startQuiz(title,qs,null,false,()=>deckView(d));Q.deck=d.key;Q.deckKey=key;
 }
 function deckView(d){
+  if(d.init&&!d.ready){d.qs=d.init();d.ready=true}
   $.innerHTML=`<button class="back" id="b">&larr; All lessons</button><h2>${esc(d.title)}</h2>
   <p class="sub">${d.qs.length} questions on ${esc(d.sub)}</p>
-  <div class="row"><button class="btn" id="all">Full quiz (${d.qs.length})</button><button class="btn ghost" id="q10">Quick 10</button></div>
+  <div class="row"><button class="btn" id="all">Full quiz (${d.qs.length})</button><button class="btn ghost" id="q10">Quick 10</button>${d.study?`<button class="btn ghost" id="st">Review all idioms</button>`:""}</div>
   <div style="height:8px"></div>`+
   d.sections.map((t,i)=>`<button class="card lesson" data-i="${i}"><span class="n">${i+1}</span>
     <span class="t">${esc(t)}<small>${d.qs.filter(q=>q.s===i).length} questions</small></span>${S[d.key][i]!=null?`<span class="badge">${S[d.key][i]}%</span>`:""}</button>`).join("");
   document.getElementById("b").onclick=home;
   document.getElementById("all").onclick=()=>deckQuiz(d,d.title,d.qs,"all");
   document.getElementById("q10").onclick=()=>deckQuiz(d,d.title+": Quick 10",d.qs,null,10);
+  const st=document.getElementById("st");if(st)st.onclick=()=>idiomStudy(d);
   $.querySelectorAll(".lesson").forEach(b=>b.onclick=()=>deckQuiz(d,d.title+": "+d.sections[+b.dataset.i],d.qs.filter(q=>q.s===+b.dataset.i),+b.dataset.i));
+  scrollTo(0,0);
+}
+function idiomStudy(d){
+  $.innerHTML=`<button class="back" id="b">&larr; ${esc(d.title)}</button><h2>Review all idioms</h2><p class="sub">${IDIOMS.length} idioms, grouped by theme. Tap 🔊 to hear one.</p>`+
+  IDIOM_SECTIONS.map((t,g)=>`<h2 style="margin-top:20px">${esc(t)}</h2>`+IDIOMS.filter(x=>x[1]===g).map(x=>`<div class="card x"><div class="p"><span>${esc(x[0])}</span><button class="say" title="Listen" data-p="${esc(x[0])}">&#128266;</button></div>
+    <div class="m">${esc(x[2])} <span style="opacity:.8">(${esc(x[5])})</span></div><div class="e">${hl(x[3],x[4])}</div></div>`).join("")).join("");
+  document.getElementById("b").onclick=()=>deckView(d);
+  $.querySelectorAll(".say").forEach(b=>b.onclick=()=>speak(b.dataset.p));
   scrollTo(0,0);
 }
 function weakQuiz(){
@@ -889,7 +965,7 @@ function dash(){
   document.getElementById("b").onclick=home;
   $.querySelectorAll(".dl").forEach(b=>b.onclick=()=>lesson(+b.dataset.i));
   const wk=document.getElementById("wk");if(wk)wk.onclick=weakQuiz;
-  document.getElementById("rs").onclick=()=>{if(confirm("Erase all scores, weak spots and history?")){S={best:{},weak:{},stats:{},days:{},hist:[],llm:{},surge:{}};save();home()}};
+  document.getElementById("rs").onclick=()=>{if(confirm("Erase all scores, weak spots and history?")){S={best:{},weak:{},stats:{},days:{},hist:[],llm:{},surge:{},idioms:{}};save();home()}};
   scrollTo(0,0);
 }
 function lesson(i){
